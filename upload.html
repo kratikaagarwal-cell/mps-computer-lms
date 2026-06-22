@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Import Students — MPS LMS</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
+.header { background: linear-gradient(135deg, #0f4c81, #1abc9c); color: white; padding: 18px 28px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header-nav a { color: white; text-decoration: none; background: rgba(255,255,255,0.18); padding: 7px 15px; border-radius: 20px; font-size: 13px; margin-left: 8px; }
+.container { max-width: 560px; margin: 40px auto; padding: 0 20px; }
+.card { background: white; border-radius: 20px; padding: 32px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+.card h2 { font-size: 20px; font-weight: 700; color: #0f4c81; margin-bottom: 6px; }
+.card p { font-size: 13px; color: #888; margin-bottom: 24px; }
+label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+.upload-box { border: 2px dashed #0f4c81; border-radius: 14px; padding: 30px; text-align: center; background: #eff6ff; margin-bottom: 20px; }
+.upload-box p { color: #666; font-size: 13px; margin-bottom: 10px; }
+.upload-box input[type=file] { border: none; background: transparent; font-size: 13px; }
+.col-list { background: #f8fafc; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+.col-list p { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 8px; }
+.col-list code { display: inline-block; background: #e2e8f0; color: #0f4c81; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin: 2px; font-family: monospace; }
+.btn { display: block; width: 100%; padding: 13px; border-radius: 25px; font-size: 15px; font-weight: 700; color: white; background: linear-gradient(135deg, #0f4c81, #1abc9c); border: none; cursor: pointer; text-decoration: none; text-align: center; }
+.btn:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>📤 Import Students</h1></div>
+  <div class="header-nav">
+    <a href="/admin">📊 Admin</a>
+    <a href="/students">👨‍🎓 Students</a>
+    <a href="/">🏠 Home</a>
+  </div>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Upload Student Excel File</h2>
+    <p>Import multiple students at once using a formatted Excel (.xlsx) file.</p>
+    <div class="col-list">
+      <p>Required columns in your Excel file:</p>
+      <code>Admission_No</code>
+      <code>Student_Name</code>
+      <code>DOB</code>
+      <code>Class</code>
+      <code>Section</code>
+      <code>Roll_No</code>
+      <code>Parent_Mobile</code>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="upload-box">
+        <p>📊 Select your Excel file (.xlsx)</p>
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+      </div>
+      <button class="btn" type="submit">⬆ Import Students</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>
