@@ -12,7 +12,7 @@ app.secret_key = "mps_lms_secret_2025"
 # ─────────────────────────────────────────────
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL",
-    "postgresql://postgres:Kratika%4012345@db.fxyyepynocnjegevvsbq.supabase.co:5432/postgres"
+    "postgresql://postgres.fxyyepynocnjegevvsbq:Kratika%4012345@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
 )
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 app.config["UPLOAD_FOLDER"] = "uploads"
