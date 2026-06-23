@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>🏆 Leaderboard — {{ game.title }}</h3>
+  <p class="text-muted">{{ game.chapter }} | {{ game.section }}</p>
+  {% if scores %}
+  <table class="table table-bordered table-hover mt-3">
+    <thead class="table-dark">
+      <tr><th>#</th><th>Student</th><th>Admission No</th><th>Score</th><th>Time</th><th>Played At</th></tr>
+    </thead>
+    <tbody>
+      {% for s in scores %}
+      <tr>
+        <td>
+          {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+        </td>
+        <td><strong>{{ s.student.student_name }}</strong></td>
+        <td>{{ s.student.admission_no }}</td>
+        <td><strong style="color:#8b5cf6;">{{ s.score }} pts</strong></td>
+        <td>{{ s.time_seconds }}s</td>
+        <td>{{ s.played_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info mt-3">No students have played this game yet.</div>
+  {% endif %}
+  <a href="/teacher" class="btn btn-secondary mt-2">← Back</a>
+</div>
+{% endblock %}
