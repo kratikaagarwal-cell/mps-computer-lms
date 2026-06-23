@@ -336,7 +336,7 @@ def admin():
     all_sections = ["6A","6B","6C","6D","6E","6F","6G",
                     "7A","7B","7C","7D","7E","7F","7G",
                     "8A","8B","8C","8D","8E","8F","8G",
-                    "9A","9B","9C","9D","9E","9F","9G"]
+                    "9A","9B","9C","9D","9E","9F","9G","9H"]
     section_counts = {sec: Student.query.filter_by(section=sec).count() for sec in all_sections}
     return render_template("admin.html",
         total_students=total_students, total_notes=total_notes,
@@ -358,7 +358,7 @@ def students():
     all_sections = ["6A","6B","6C","6D","6E","6F","6G",
                     "7A","7B","7C","7D","7E","7F","7G",
                     "8A","8B","8C","8D","8E","8F","8G",
-                    "9A","9B","9C","9D","9E","9F","9G"]
+                    "9A","9B","9C","9D","9E","9F","9G","9H"]
     return render_template("students.html", students=data.all(), total=Student.query.count(),
         sections=all_sections, search=search, section=section)
 
