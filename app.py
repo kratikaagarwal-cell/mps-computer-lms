@@ -8,15 +8,15 @@ app = Flask(__name__)
 app.secret_key = "mps_lms_secret_2025"
 
 # ─────────────────────────────────────────────
-# USE /data FOR PERSISTENT STORAGE ON RENDER
+# DATABASE — Supabase PostgreSQL (persistent, free, never expires)
 # ─────────────────────────────────────────────
-DATA_DIR = "/data" if os.path.exists("/data") else "."
-DB_PATH = os.path.join(DATA_DIR, "mps_lms.db")
-UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
-app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
-app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB max upload
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:Kratika%4012345@db.fxyyepynocnjegevvsbq.supabase.co:5432/postgres"
+)
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB
 
 db = SQLAlchemy(app)
 
@@ -58,7 +58,7 @@ class Note(db.Model):
     chapter_no = db.Column(db.Integer, default=0)
     section = db.Column(db.String(20))
     description = db.Column(db.String(300))
-    file_type = db.Column(db.String(20), default="notes")  # notes / book / quiz / test
+    file_type = db.Column(db.String(20), default="notes")
     uploaded_at = db.Column(db.String(30), default="")
 
 
@@ -78,7 +78,7 @@ class ChapterProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
     chapter_no = db.Column(db.Integer)
-    status = db.Column(db.String(20), default="pending")  # pending / in_progress / completed
+    status = db.Column(db.String(20), default="pending")
     updated_at = db.Column(db.String(30), default="")
 
 
@@ -86,13 +86,13 @@ class AssignmentSubmission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
     assignment_id = db.Column(db.Integer, db.ForeignKey("assignment.id"))
-    status = db.Column(db.String(20), default="pending")  # pending / submitted / graded
+    status = db.Column(db.String(20), default="pending")
     submitted_at = db.Column(db.String(30), default="")
     remarks = db.Column(db.String(300), default="")
 
 
 # ─────────────────────────────────────────────
-# CHAPTERS
+# CHAPTERS & SECTIONS
 # ─────────────────────────────────────────────
 
 CHAPTERS = [
@@ -240,8 +240,8 @@ def upload_students():
         return redirect("/login")
     if request.method == "POST":
         file = request.files["file"]
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
-        path = os.path.join(UPLOAD_DIR, file.filename)
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
         file.save(path)
         added = 0
         wb = openpyxl.load_workbook(path)
@@ -302,9 +302,9 @@ def upload_notes():
     file_type = request.form.get("file_type", "notes")
 
     if file and file.filename:
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
-        path = os.path.join(UPLOAD_DIR, safe_name)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], safe_name)
         file.save(path)
         note = Note(
             filename=safe_name,
@@ -326,7 +326,7 @@ def delete_note(id):
         return redirect("/teacher_login")
     note = db.session.get(Note, id)
     if note:
-        fpath = os.path.join(UPLOAD_DIR, note.filename)
+        fpath = os.path.join(app.config["UPLOAD_FOLDER"], note.filename)
         if os.path.exists(fpath):
             os.remove(fpath)
         db.session.delete(note)
@@ -347,9 +347,9 @@ def create_assignment():
     filename = ""
     file = request.files.get("file")
     if file and file.filename:
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
-        file.save(os.path.join(UPLOAD_DIR, safe_name))
+        file.save(os.path.join(app.config["UPLOAD_FOLDER"], safe_name))
         filename = safe_name
 
     assignment = Assignment(
@@ -507,14 +507,14 @@ def submit_assignment(assignment_id):
 
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
-    return send_from_directory(UPLOAD_DIR, filename)
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 # ─────────────────────────────────────────────
-# DB INIT — runs on every startup (works with gunicorn on Render)
+# DB INIT — runs on every startup
 # ─────────────────────────────────────────────
 
 with app.app_context():
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs("uploads", exist_ok=True)
     db.create_all()
     if Admin.query.count() == 0:
         db.session.add(Admin(username="admin", password="1234"))
