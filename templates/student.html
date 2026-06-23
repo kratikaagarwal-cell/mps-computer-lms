@@ -5,126 +5,121 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Student Portal — MPS LMS</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
+.header{background:linear-gradient(135deg,#f59e0b,#0f4c81);color:white;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:20px;font-weight:700;}
+.header p{font-size:12px;opacity:0.85;margin-top:3px;}
+.header-nav a{color:white;text-decoration:none;background:rgba(255,255,255,0.18);padding:7px 15px;border-radius:20px;font-size:13px;margin-left:8px;}
+.login-wrap{min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:30px;}
+.login-box{background:white;width:420px;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+.login-top{background:linear-gradient(135deg,#f59e0b,#d97706);padding:40px 30px;text-align:center;color:white;}
+.login-top .icon{font-size:60px;display:block;margin-bottom:12px;}
+.login-top h2{font-size:24px;font-weight:700;}
+.login-body{padding:30px;}
+.alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;}
+.alert-error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+.login-body label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:5px;}
+.login-body input{width:100%;padding:12px 14px;border:1.5px solid #dde3ec;border-radius:10px;margin-bottom:14px;font-size:14px;background:#fafbfc;}
+.login-body input:focus{outline:none;border-color:#f59e0b;}
+.btn-login{width:100%;background:linear-gradient(135deg,#f59e0b,#0f4c81);color:white;border:none;padding:14px;border-radius:25px;font-size:15px;font-weight:700;cursor:pointer;}
+.login-hint{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:12px;color:#78350f;margin-top:14px;text-align:center;}
+.container{max-width:1080px;margin:26px auto;padding:0 20px;}
+.student-banner{background:white;border-radius:16px;padding:20px 24px;box-shadow:0 4px 14px rgba(0,0,0,0.07);display:flex;align-items:center;gap:20px;margin-bottom:22px;border-left:6px solid #f59e0b;}
+.s-avatar{font-size:52px;}
+.s-info h2{color:#0f4c81;font-size:20px;font-weight:700;}
+.s-info p{color:#777;font-size:12px;margin-top:4px;}
+.chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.chip{background:#fef3c7;color:#92400e;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.prog-overview{background:white;border-radius:16px;padding:20px 24px;margin-bottom:22px;box-shadow:0 4px 14px rgba(0,0,0,0.07);}
+.po-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.po-title{font-size:15px;font-weight:700;color:#0f4c81;}
+.po-stats{display:flex;gap:20px;}
+.po-stat{text-align:center;}
+.po-stat .psn{font-size:22px;font-weight:800;color:#0f4c81;}
+.po-stat .psl{font-size:11px;color:#888;}
+.big-bar-wrap{background:#e2e8f0;border-radius:10px;height:14px;overflow:hidden;}
+.big-bar-fill{height:14px;background:linear-gradient(90deg,#0f4c81,#1abc9c);border-radius:10px;transition:width 0.8s ease;}
+.bar-label{font-size:12px;color:#888;margin-top:6px;}
+.tab-bar{display:flex;gap:4px;margin-bottom:18px;background:white;border-radius:14px;padding:6px;box-shadow:0 2px 10px rgba(0,0,0,0.06);overflow-x:auto;}
+.tab-btn{padding:9px 16px;border-radius:10px;border:none;background:transparent;font-size:13px;font-weight:600;color:#888;cursor:pointer;white-space:nowrap;}
+.tab-btn.active{background:#f59e0b;color:white;}
+.tab-btn:hover:not(.active){background:#fffbeb;color:#f59e0b;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.card{background:white;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:18px;}
+.card-title{font-size:15px;font-weight:700;color:#0f4c81;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e8eef5;}
 
-.header { background: linear-gradient(135deg, #f59e0b, #0f4c81); color: white; padding: 18px 28px; display: flex; justify-content: space-between; align-items: center; }
-.header h1 { font-size: 20px; font-weight: 700; }
-.header p { font-size: 12px; opacity: 0.85; margin-top: 3px; }
-.header-nav a { color: white; text-decoration: none; background: rgba(255,255,255,0.18); padding: 7px 15px; border-radius: 20px; font-size: 13px; margin-left: 8px; }
-.header-nav a:hover { background: rgba(255,255,255,0.32); }
+/* CHAPTER CARDS */
+.ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.ch-card{background:#f8fafc;border-radius:16px;padding:16px;border:2px solid #e2e8f0;transition:all 0.2s;position:relative;overflow:hidden;}
+.ch-card.active-ch{border-color:#0f4c81;}
+.ch-card.locked{opacity:0.5;pointer-events:none;}
+.ch-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.ch-num-badge{background:#0f4c81;color:white;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;}
+.ch-month{font-size:10px;color:#888;background:#f0f4f8;padding:2px 8px;border-radius:10px;}
+.ch-name{font-size:14px;font-weight:700;color:#0f4c81;margin-bottom:10px;}
+.ch-prog-bar{background:#e2e8f0;border-radius:6px;height:8px;margin-bottom:8px;overflow:hidden;}
+.ch-prog-fill{height:8px;border-radius:6px;transition:width 0.5s;}
+.ch-pct{font-size:12px;font-weight:700;color:#0f4c81;margin-bottom:10px;}
+.ch-tasks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ch-task{font-size:11px;padding:3px 8px;border-radius:8px;font-weight:600;}
+.ch-task.done{background:#d1fae5;color:#065f46;}
+.ch-task.pending{background:#f1f5f9;color:#94a3b8;}
+.ch-task.na{display:none;}
+.locked-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;font-size:28px;}
 
-.login-wrap { min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 30px; }
-.login-box { background: white; width: 420px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-.login-top { background: linear-gradient(135deg, #f59e0b, #d97706); padding: 40px 30px; text-align: center; color: white; }
-.login-top .icon { font-size: 60px; display: block; margin-bottom: 12px; }
-.login-top h2 { font-size: 24px; font-weight: 700; }
-.login-top p { font-size: 13px; opacity: 0.88; margin-top: 5px; }
-.login-body { padding: 30px; }
-.alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
-.alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-.login-body label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 5px; }
-.login-body input { width: 100%; padding: 12px 14px; border: 1.5px solid #dde3ec; border-radius: 10px; margin-bottom: 14px; font-size: 14px; background: #fafbfc; }
-.login-body input:focus { outline: none; border-color: #f59e0b; }
-.btn-login { width: 100%; background: linear-gradient(135deg, #f59e0b, #0f4c81); color: white; border: none; padding: 14px; border-radius: 25px; font-size: 15px; font-weight: 700; cursor: pointer; }
-.login-hint { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #78350f; margin-top: 14px; text-align: center; }
+/* MATERIALS */
+.mat-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#f8fafc;margin-bottom:8px;border-left:4px solid #0f4c81;}
+.mat-item.book-item{border-left-color:#1abc9c;}
+.mat-item.quiz-item{border-left-color:#8b5cf6;}
+.mat-item.game-item{border-left-color:#f59e0b;}
+.mat-icon{font-size:26px;flex-shrink:0;}
+.mat-info{flex:1;min-width:0;}
+.mat-name{font-size:13px;font-weight:600;color:#0f4c81;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mat-sub{font-size:11px;color:#999;margin-top:2px;}
+.mat-action{flex-shrink:0;}
 
-.container { max-width: 1080px; margin: 26px auto; padding: 0 20px; }
+/* QUIZ CARD */
+.quiz-card{border-radius:14px;padding:16px;margin-bottom:12px;border-left:4px solid #8b5cf6;background:#f5f3ff;}
+.quiz-card.attempted{border-left-color:#1abc9c;background:#f0fdf8;}
+.qc-title{font-weight:700;color:#0f4c81;font-size:14px;margin-bottom:4px;}
+.qc-meta{font-size:12px;color:#888;margin-bottom:10px;}
+.qc-score{font-size:24px;font-weight:800;color:#1abc9c;}
 
-.student-banner { background: white; border-radius: 16px; padding: 20px 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.07); display: flex; align-items: center; gap: 20px; margin-bottom: 22px; border-left: 6px solid #f59e0b; }
-.s-avatar { font-size: 52px; }
-.s-info h2 { color: #0f4c81; font-size: 20px; font-weight: 700; }
-.s-info p { color: #777; font-size: 12px; margin-top: 4px; }
-.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.chip { background: #fef3c7; color: #92400e; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+/* GAME CARD */
+.game-card{border-radius:14px;padding:16px;margin-bottom:12px;border-left:4px solid #f59e0b;background:#fffbeb;}
+.game-card.played{border-left-color:#10b981;background:#f0fdf8;}
 
-.prog-overview { background: white; border-radius: 16px; padding: 20px 24px; margin-bottom: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.07); }
-.po-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.po-title { font-size: 15px; font-weight: 700; color: #0f4c81; }
-.po-stats { display: flex; gap: 20px; }
-.po-stat { text-align: center; }
-.po-stat .psn { font-size: 22px; font-weight: 800; color: #0f4c81; }
-.po-stat .psl { font-size: 11px; color: #888; }
-.big-bar-wrap { background: #e2e8f0; border-radius: 10px; height: 14px; overflow: hidden; }
-.big-bar-fill { height: 14px; background: linear-gradient(90deg, #0f4c81, #1abc9c); border-radius: 10px; transition: width 0.8s ease; }
-.bar-label { font-size: 12px; color: #888; margin-top: 6px; }
+/* ASSIGN */
+.assign-item{border-radius:14px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #f59e0b;background:#fffbeb;}
+.assign-item.submitted{border-left-color:#1abc9c;background:#f0fdf8;}
+.at{font-weight:700;color:#0f4c81;font-size:14px;margin-bottom:4px;}
+.am{font-size:12px;color:#888;margin-bottom:8px;}
+.ad{font-size:12px;color:#555;background:rgba(0,0,0,0.04);padding:6px 10px;border-radius:8px;margin-bottom:10px;}
+.assign-footer{display:flex;justify-content:space-between;align-items:center;}
 
-.tab-bar { display: flex; gap: 4px; margin-bottom: 18px; background: white; border-radius: 14px; padding: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow-x: auto; }
-.tab-btn { padding: 9px 16px; border-radius: 10px; border: none; background: transparent; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; white-space: nowrap; }
-.tab-btn.active { background: #f59e0b; color: white; }
-.tab-btn:hover:not(.active) { background: #fffbeb; color: #f59e0b; }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
+/* FEEDBACK */
+.feedback-form{background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:10px;border-left:4px solid #0e9e82;}
+.stars{display:flex;gap:4px;margin-bottom:10px;}
+.star{font-size:24px;cursor:pointer;color:#ddd;transition:color 0.1s;}
+.star.active,.star:hover{color:#f59e0b;}
 
-.card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 18px; }
-.card-title { font-size: 15px; font-weight: 700; color: #0f4c81; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #e8eef5; }
-
-.ch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.ch-card { background: #f8fafc; border-radius: 14px; padding: 14px; border-left: 4px solid #e2e8f0; transition: all 0.2s; }
-.ch-card.completed { border-left-color: #1abc9c; background: #f0fdf8; }
-.ch-card.in_progress { border-left-color: #0f4c81; background: #eff6ff; }
-.ch-cn { font-size: 11px; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; }
-.ch-ct { font-size: 13px; color: #0f4c81; font-weight: 700; margin-bottom: 6px; }
-.ch-meta { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-.ch-meta-item { font-size: 11px; color: #888; }
-.ch-status { display: flex; gap: 6px; align-items: center; }
-.status-btn { padding: 4px 10px; border-radius: 12px; border: 1.5px solid; font-size: 11px; font-weight: 600; cursor: pointer; background: transparent; }
-.status-btn.pending-btn { border-color: #e2e8f0; color: #999; }
-.status-btn.progress-btn { border-color: #0f4c81; color: #0f4c81; }
-.status-btn.done-btn { border-color: #1abc9c; color: #1abc9c; }
-
-.mat-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; margin-bottom: 8px; border-left: 4px solid #0f4c81; }
-.mat-item.book-item { border-left-color: #1abc9c; }
-.mat-item.quiz-item { border-left-color: #8b5cf6; }
-.mat-icon { font-size: 26px; flex-shrink: 0; }
-.mat-info { flex: 1; min-width: 0; }
-.mat-name { font-size: 13px; font-weight: 600; color: #0f4c81; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mat-sub { font-size: 11px; color: #999; margin-top: 2px; }
-.mat-action { flex-shrink: 0; }
-
-/* MCQ QUIZ CARD */
-.quiz-card { border-radius: 14px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #8b5cf6; background: #f5f3ff; }
-.quiz-card.attempted { border-left-color: #1abc9c; background: #f0fdf8; }
-.qc-title { font-weight: 700; color: #0f4c81; font-size: 14px; margin-bottom: 4px; }
-.qc-meta { font-size: 12px; color: #888; margin-bottom: 10px; }
-.qc-score { font-size: 18px; font-weight: 800; color: #1abc9c; }
-.qc-score-label { font-size: 11px; color: #888; }
-
-.assign-item { border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #f59e0b; background: #fffbeb; }
-.assign-item.submitted { border-left-color: #1abc9c; background: #f0fdf8; }
-.at { font-weight: 700; color: #0f4c81; font-size: 14px; margin-bottom: 4px; }
-.am { font-size: 12px; color: #888; margin-bottom: 8px; }
-.ad { font-size: 12px; color: #555; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 8px; margin-bottom: 10px; }
-.assign-footer { display: flex; justify-content: space-between; align-items: center; }
-
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-.bg-green { background: #d1fae5; color: #065f46; }
-.bg-blue { background: #dbeafe; color: #1e40af; }
-.bg-orange { background: #ffedd5; color: #9a3412; }
-.bg-purple { background: #ede9fe; color: #5b21b6; }
-.bg-gray { background: #f1f5f9; color: #64748b; }
-
-.btn { display: inline-block; padding: 7px 16px; border-radius: 18px; font-size: 12px; font-weight: 600; color: white; text-decoration: none; border: none; cursor: pointer; }
-.btn-teal { background: #1abc9c; }
-.btn-blue { background: #0f4c81; }
-.btn-orange { background: #f59e0b; }
-.btn-purple { background: #8b5cf6; }
-.btn-gray { background: #e2e8f0; color: #64748b; cursor: default; }
-.btn:hover { opacity: 0.9; }
-
-.empty { text-align: center; padding: 32px; color: #ccc; font-size: 13px; }
-
-@media(max-width:700px){ .ch-grid{grid-template-columns:1fr 1fr;} }
-@media(max-width:480px){ .ch-grid{grid-template-columns:1fr;} }
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bg-green{background:#d1fae5;color:#065f46;}.bg-blue{background:#dbeafe;color:#1e40af;}
+.bg-orange{background:#ffedd5;color:#9a3412;}.bg-purple{background:#ede9fe;color:#5b21b6;}
+.bg-gray{background:#f1f5f9;color:#64748b;}
+.btn{display:inline-block;padding:7px 16px;border-radius:18px;font-size:12px;font-weight:600;color:white;text-decoration:none;border:none;cursor:pointer;}
+.btn-teal{background:#1abc9c;}.btn-blue{background:#0f4c81;}.btn-orange{background:#f59e0b;}
+.btn-purple{background:#8b5cf6;}.btn-green{background:#10b981;}.btn-gray{background:#e2e8f0;color:#64748b;cursor:default;}
+.btn:hover{opacity:0.9;}
+.empty{text-align:center;padding:32px;color:#ccc;font-size:13px;}
+@media(max-width:700px){.ch-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.ch-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
 <div class="header">
-  <div>
-    <h1>👨‍🎓 Student Portal</h1>
-    <p>MPS International — Computer Science, Class 6</p>
-  </div>
+  <div><h1>👨‍🎓 Student Portal</h1><p>MPS International — Computer Science, Class 6</p></div>
   <div class="header-nav">
     <a href="/">🏠 Home</a>
     {% if student %}<a href="/student_logout">🚪 Logout</a>{% endif %}
@@ -133,8 +128,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
 
 {% if student %}
 <div class="container">
-
-  <!-- Banner -->
   <div class="student-banner">
     <div class="s-avatar">👨‍🎓</div>
     <div class="s-info">
@@ -149,7 +142,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
     </div>
   </div>
 
-  <!-- Progress Overview -->
   <div class="prog-overview">
     <div class="po-header">
       <div class="po-title">📊 My Syllabus Progress</div>
@@ -162,55 +154,59 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
     <div class="big-bar-wrap">
       <div class="big-bar-fill" style="width:{{ ((completed / total_chapters * 100) if total_chapters else 0)|int }}%;"></div>
     </div>
-    <div class="bar-label">{{ completed }} of {{ total_chapters }} chapters completed — {{ ((completed / total_chapters * 100) if total_chapters else 0)|int }}%</div>
+    <div class="bar-label">{{ completed }} of {{ total_chapters }} chapters at 100% — {{ ((completed / total_chapters * 100) if total_chapters else 0)|int }}%</div>
   </div>
 
-  <!-- Tab Bar -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="showTab('tab-chapters')">📚 Chapters</button>
-    <button class="tab-btn" onclick="showTab('tab-notes')">📎 Notes ({{ notes|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-books')">📗 Books ({{ books|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-quiz')">🧠 Quizzes ({{ quizzes|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-assign')">📝 Assignments ({{ assignments|length }})</button>
+    <button class="tab-btn active" onclick="showTab('tab-chapters')">📚 My Chapters</button>
+    <button class="tab-btn" onclick="showTab('tab-notes')">📎 Notes</button>
+    <button class="tab-btn" onclick="showTab('tab-books')">📗 Books</button>
+    <button class="tab-btn" onclick="showTab('tab-quiz')">🧠 Quizzes</button>
+    <button class="tab-btn" onclick="showTab('tab-game')">🎮 Games</button>
+    <button class="tab-btn" onclick="showTab('tab-assign')">📝 Assignments</button>
+    <button class="tab-btn" onclick="showTab('tab-feedback')">💬 Feedback</button>
   </div>
 
-  <!-- TAB: CHAPTERS -->
+  <!-- CHAPTERS TAB -->
   <div id="tab-chapters" class="tab-content active">
     <div class="card">
-      <div class="card-title">📚 Computer Science — Chapter Progress</div>
+      <div class="card-title">📚 Chapter Progress</div>
       <div class="ch-grid">
         {% for ch in chapters %}
-        {% set status = progress_map.get(ch.no, 'pending') %}
-        {% set stats = chapter_stats.get(ch.no, {}) %}
-        <div class="ch-card {{ status }}">
-          <div class="ch-cn">Chapter {{ ch.no }}</div>
-          <div class="ch-ct">{{ ch.name }}</div>
-          <div class="ch-meta">
-            {% if stats.notes %}<span class="ch-meta-item">📎 {{ stats.notes }}</span>{% endif %}
-            {% if stats.books %}<span class="ch-meta-item">📗 {{ stats.books }}</span>{% endif %}
-            {% if stats.quizzes %}<span class="ch-meta-item">🧠 {{ stats.quizzes }}</span>{% endif %}
-            {% if stats.assignments %}<span class="ch-meta-item">📝 {{ stats.assignments }}</span>{% endif %}
+        {% set cfg = chapter_configs.get(ch.no) %}
+        {% set prog = progress_map.get(ch.no) %}
+        {% set pct = chapter_pcts.get(ch.no, 0) %}
+        {% set is_active = cfg and cfg.is_active %}
+        <div class="ch-card {% if is_active %}active-ch{% else %}locked{% endif %}">
+          {% if not is_active %}<div class="locked-overlay">🔒</div>{% endif %}
+          <div class="ch-top">
+            <span class="ch-num-badge">Ch {{ ch.no }}</span>
+            {% if cfg and cfg.active_month %}<span class="ch-month">{{ cfg.active_month }}</span>{% endif %}
           </div>
-          <div class="ch-status">
-            <form method="POST" action="/update_progress" style="display:inline;">
-              <input type="hidden" name="chapter_no" value="{{ ch.no }}">
-              <input type="hidden" name="status" value="pending">
-              <button type="submit" class="status-btn pending-btn" title="Pending">⏳</button>
-            </form>
-            <form method="POST" action="/update_progress" style="display:inline;">
-              <input type="hidden" name="chapter_no" value="{{ ch.no }}">
-              <input type="hidden" name="status" value="in_progress">
-              <button type="submit" class="status-btn progress-btn" title="In Progress">📖</button>
-            </form>
-            <form method="POST" action="/update_progress" style="display:inline;">
-              <input type="hidden" name="chapter_no" value="{{ ch.no }}">
-              <input type="hidden" name="status" value="completed">
-              <button type="submit" class="status-btn done-btn" title="Completed">✅</button>
-            </form>
-            &nbsp;
-            {% if status == 'completed' %}<span class="badge bg-green">✓ Done</span>
-            {% elif status == 'in_progress' %}<span class="badge bg-blue">📖 Ongoing</span>
-            {% else %}<span class="badge bg-gray">⏳ Pending</span>{% endif %}
+          <div class="ch-name">{{ ch.name }}</div>
+          <div class="ch-prog-bar">
+            <div class="ch-prog-fill" style="width:{{ pct }}%;background:{% if pct==100 %}#10b981{% elif pct>0 %}#0f4c81{% else %}#e2e8f0{% endif %};"></div>
+          </div>
+          <div class="ch-pct">{{ pct }}% complete</div>
+          <div class="ch-tasks">
+            {% if cfg and cfg.has_video %}
+            <span class="ch-task {% if prog and prog.video_done %}done{% else %}pending{% endif %}">🎬 {% if prog and prog.video_done %}✓{% else %}○{% endif %} Video</span>
+            {% endif %}
+            {% if cfg and cfg.has_notes %}
+            <span class="ch-task {% if prog and prog.notes_done %}done{% else %}pending{% endif %}">📎 {% if prog and prog.notes_done %}✓{% else %}○{% endif %} Notes</span>
+            {% endif %}
+            {% if cfg and cfg.has_book %}
+            <span class="ch-task {% if prog and prog.book_done %}done{% else %}pending{% endif %}">📗 {% if prog and prog.book_done %}✓{% else %}○{% endif %} Book</span>
+            {% endif %}
+            {% if cfg and cfg.has_quiz %}
+            <span class="ch-task {% if prog and prog.quiz_done %}done{% else %}pending{% endif %}">🧠 {% if prog and prog.quiz_done %}✓{% else %}○{% endif %} Quiz</span>
+            {% endif %}
+            {% if cfg and cfg.has_game %}
+            <span class="ch-task {% if prog and prog.game_done %}done{% else %}pending{% endif %}">🎮 {% if prog and prog.game_done %}✓{% else %}○{% endif %} Game</span>
+            {% endif %}
+            {% if cfg and cfg.has_feedback %}
+            <span class="ch-task {% if ch.no in feedbacks_done %}done{% else %}pending{% endif %}">💬 {% if ch.no in feedbacks_done %}✓{% else %}○{% endif %} Feedback</span>
+            {% endif %}
           </div>
         </div>
         {% endfor %}
@@ -218,7 +214,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
     </div>
   </div>
 
-  <!-- TAB: NOTES -->
+  <!-- NOTES TAB -->
   <div id="tab-notes" class="tab-content">
     <div class="card">
       <div class="card-title">📎 Study Notes</div>
@@ -226,9 +222,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
         {% set prev_ch = namespace(no=-1) %}
         {% for n in notes %}
           {% if n.chapter_no != prev_ch.no %}
-          <div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.8px;margin:14px 0 8px;">
-            {% if n.chapter_no %}Ch {{ n.chapter_no }} — {{ n.chapter }}{% else %}{{ n.chapter }}{% endif %}
-          </div>
+          <div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.8px;margin:14px 0 8px;">Ch {{ n.chapter_no }} — {{ n.chapter }}</div>
           {% set prev_ch.no = n.chapter_no %}
           {% endif %}
           <div class="mat-item">
@@ -237,18 +231,31 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
               <div class="mat-name">{{ n.original_name or n.filename }}</div>
               <div class="mat-sub">{{ n.description or 'Study notes' }} · Sec {{ n.section }}</div>
             </div>
-            <div class="mat-action">
-              <a href="/uploads/{{ n.filename }}" class="btn btn-blue" target="_blank">⬇ Download</a>
+            <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
+              <a href="/uploads/{{ n.filename }}" class="btn btn-blue" target="_blank" onclick="markNotes({{ n.chapter_no }})">⬇ Download</a>
+              {% set prog = progress_map.get(n.chapter_no) %}
+              {% if prog and prog.notes_done %}<span class="badge bg-green">✓ Read</span>{% endif %}
             </div>
           </div>
         {% endfor %}
-      {% else %}
-      <div class="empty">📎 No notes uploaded yet by your teacher.</div>
-      {% endif %}
+        <div style="margin-top:16px;">
+          {% for ch in chapters %}
+          {% set ch_notes = notes|selectattr('chapter_no','eq',ch.no)|list %}
+          {% if ch_notes %}
+          {% set prog = progress_map.get(ch.no) %}
+          {% if not (prog and prog.notes_done) %}
+          <form method="POST" action="/mark_notes/{{ ch.no }}" style="display:inline;">
+            <button type="submit" class="btn btn-green" style="font-size:11px;padding:5px 12px;margin:2px;">✅ Mark Ch{{ ch.no }} Notes Read</button>
+          </form>
+          {% endif %}
+          {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}<div class="empty">📎 No notes uploaded yet by your teacher.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: BOOKS -->
+  <!-- BOOKS TAB -->
   <div id="tab-books" class="tab-content">
     <div class="card">
       <div class="card-title">📗 Book PDFs</div>
@@ -260,56 +267,73 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
             <div class="mat-name">{{ b.original_name or b.filename }}</div>
             <div class="mat-sub">{{ b.chapter }} · Sec {{ b.section }}</div>
           </div>
-          <div class="mat-action">
+          <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
             <a href="/uploads/{{ b.filename }}" class="btn btn-teal" target="_blank">⬇ Open Book</a>
+            {% set prog = progress_map.get(b.chapter_no) %}
+            {% if not (prog and prog.book_done) %}
+            <a href="/mark_book/{{ b.chapter_no }}" class="btn btn-green" style="font-size:11px;padding:5px 10px;">✅ Mark Read</a>
+            {% else %}<span class="badge bg-green">✓ Read</span>{% endif %}
           </div>
         </div>
         {% endfor %}
-      {% else %}
-      <div class="empty">📗 No book PDFs uploaded yet.</div>
-      {% endif %}
+      {% else %}<div class="empty">📗 No books uploaded yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: MCQ QUIZZES -->
+  <!-- VIDEO (embedded in chapters, but also list here) -->
+
+  <!-- QUIZ TAB -->
   <div id="tab-quiz" class="tab-content">
     <div class="card">
-      <div class="card-title">🧠 MCQ Quizzes</div>
+      <div class="card-title">🧠 Quizzes</div>
       {% if quizzes %}
         {% for q in quizzes %}
         {% set attempt = attempted_quiz_ids.get(q.id) %}
         <div class="quiz-card {% if attempt %}attempted{% endif %}">
           <div class="qc-title">🧠 {{ q.title }}</div>
-          <div class="qc-meta">
-            {{ q.chapter }} &nbsp;·&nbsp; Sec: {{ q.section }}
-            &nbsp;·&nbsp; <strong>{{ q.questions|length }} Questions</strong>
-            {% if q.description %}&nbsp;·&nbsp; {{ q.description }}{% endif %}
-          </div>
+          <div class="qc-meta">{{ q.chapter }} · Sec {{ q.section }} · {% if q.quiz_type=='mcq' %}<strong>{{ q.questions|length }} Questions</strong>{% else %}External Link{% endif %}{% if q.description %} · {{ q.description }}{% endif %}</div>
           {% if attempt %}
             <div style="display:flex;align-items:center;gap:12px;">
-              <div>
-                <div class="qc-score">{{ attempt.score }} / {{ attempt.total }}</div>
-                <div class="qc-score-label">Your Score</div>
-              </div>
-              {% set pct = (attempt.score / attempt.total * 100)|int if attempt.total else 0 %}
-              <span class="badge {% if pct >= 80 %}bg-green{% elif pct >= 50 %}bg-blue{% else %}bg-orange{% endif %}">
-                {{ pct }}%
-              </span>
-              <span class="badge bg-green">✓ Attempted</span>
-              <span style="font-size:11px;color:#888;">{{ attempt.attempted_at }}</span>
+              <div><div class="qc-score">{{ attempt.score }}/{{ attempt.total }}</div><div style="font-size:11px;color:#888;">Your Score</div></div>
+              {% set pct = (attempt.score/attempt.total*100)|int if attempt.total else 0 %}
+              <span class="badge {% if pct>=80 %}bg-green{% elif pct>=50 %}bg-blue{% else %}bg-orange{% endif %}">{{ pct }}%</span>
+              <span class="badge bg-green">✓ Done</span>
             </div>
           {% else %}
             <a href="/attempt_quiz/{{ q.id }}" class="btn btn-purple">🧠 Attempt Quiz</a>
           {% endif %}
         </div>
         {% endfor %}
-      {% else %}
-      <div class="empty">🧠 No quizzes posted yet by your teacher.</div>
-      {% endif %}
+      {% else %}<div class="empty">🧠 No quizzes posted yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: ASSIGNMENTS -->
+  <!-- GAME TAB -->
+  <div id="tab-game" class="tab-content">
+    <div class="card">
+      <div class="card-title">🎮 Learning Games</div>
+      {% if games %}
+        {% for g in games %}
+        {% set gs = game_scores.get(g.id) %}
+        <div class="game-card {% if gs %}played{% endif %}">
+          <div style="font-weight:700;color:#0f4c81;font-size:14px;margin-bottom:4px;">🎮 {{ g.title }}</div>
+          <div style="font-size:12px;color:#888;margin-bottom:10px;">{{ g.chapter }} · Sec {{ g.section }} · {{ g.pairs|length }} word pairs</div>
+          {% if gs %}
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div><div style="font-size:22px;font-weight:800;color:#10b981;">{{ gs.score }} pts</div><div style="font-size:11px;color:#888;">Best Score · {{ gs.time_seconds }}s</div></div>
+              <span class="badge bg-green">✓ Played</span>
+            </div>
+            <a href="/play_game/{{ g.id }}" class="btn btn-orange" style="margin-top:10px;font-size:11px;padding:5px 14px;">🔄 Play Again</a>
+          {% else %}
+            <a href="/play_game/{{ g.id }}" class="btn btn-orange">🎮 Play Game</a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}<div class="empty">🎮 No games posted yet.</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- ASSIGNMENTS TAB -->
   <div id="tab-assign" class="tab-content">
     <div class="card">
       <div class="card-title">📝 My Assignments</div>
@@ -318,40 +342,62 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
         {% set is_submitted = submitted_ids.get(a.id) %}
         <div class="assign-item {% if is_submitted %}submitted{% endif %}">
           <div class="at">{{ a.title }}</div>
-          <div class="am">{{ a.chapter }} &nbsp;·&nbsp; Sec: {{ a.section or 'All' }} &nbsp;·&nbsp; Due: <strong style="color:#e74c3c;">{{ a.due_date or 'No deadline' }}</strong></div>
+          <div class="am">{{ a.chapter }} · Sec: {{ a.section or 'All' }} · Due: <strong style="color:#e74c3c;">{{ a.due_date or 'No deadline' }}</strong></div>
           {% if a.description %}<div class="ad">📌 {{ a.description }}</div>{% endif %}
           <div class="assign-footer">
             <div>
-              {% if a.filename %}
-              <a href="/uploads/{{ a.filename }}" class="btn btn-blue" target="_blank" style="margin-right:6px;">📎 View Paper</a>
-              {% endif %}
-              {% if is_submitted %}
-              <span class="badge bg-green">✓ Submitted</span>
-              {% else %}
-              <a href="/submit_assignment/{{ a.id }}" class="btn btn-teal">✅ Mark Submitted</a>
-              {% endif %}
+              {% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-blue" target="_blank" style="margin-right:6px;">📎 View</a>{% endif %}
+              {% if is_submitted %}<span class="badge bg-green">✓ Submitted</span>
+              {% else %}<a href="/submit_assignment/{{ a.id }}" class="btn btn-teal">✅ Mark Submitted</a>{% endif %}
             </div>
-            {% if is_submitted %}<span style="font-size:11px;color:#888;">Submitted ✓</span>{% endif %}
           </div>
         </div>
         {% endfor %}
-      {% else %}
-      <div class="empty">📝 No assignments posted yet.</div>
+      {% else %}<div class="empty">📝 No assignments yet.</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- FEEDBACK TAB -->
+  <div id="tab-feedback" class="tab-content">
+    <div class="card">
+      <div class="card-title">💬 Chapter Feedback</div>
+      <p style="font-size:13px;color:#888;margin-bottom:16px;">Submit feedback after completing a chapter. This is required for 100% chapter completion.</p>
+      {% for ch in chapters %}
+      {% set cfg = chapter_configs.get(ch.no) %}
+      {% if cfg and cfg.is_active and cfg.has_feedback %}
+      {% set already_done = ch.no in feedbacks_done %}
+      <div class="feedback-form {% if already_done %}submitted{% endif %}">
+        <div style="font-weight:700;color:#0f4c81;margin-bottom:6px;">Ch {{ ch.no }} — {{ ch.name }}</div>
+        {% if already_done %}
+          <span class="badge bg-green">✓ Feedback Submitted</span>
+        {% else %}
+        <form method="POST" action="/submit_feedback">
+          <input type="hidden" name="chapter_no" value="{{ ch.no }}">
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Rate this chapter:</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            {% for i in range(1,6) %}
+            <label style="cursor:pointer;">
+              <input type="radio" name="rating" value="{{ i }}" {% if i==5 %}checked{% endif %} style="display:none;">
+              <span style="font-size:24px;" onclick="setRating(this, {{ i }}, 'rating_{{ ch.no }}')">⭐</span>
+            </label>
+            {% endfor %}
+          </div>
+          <textarea name="comment" placeholder="What did you like? What was difficult? Any suggestions..." style="width:100%;padding:10px;border:1.5px solid #dde3ec;border-radius:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;margin-bottom:10px;"></textarea>
+          <button type="submit" class="btn btn-teal">💬 Submit Feedback</button>
+        </form>
+        {% endif %}
+      </div>
       {% endif %}
+      {% endfor %}
     </div>
   </div>
 
 </div>
 
 {% else %}
-<!-- LOGIN VIEW -->
 <div class="login-wrap">
   <div class="login-box">
-    <div class="login-top">
-      <span class="icon">👨‍🎓</span>
-      <h2>Student Login</h2>
-      <p>Enter your Admission Number to access your portal</p>
-    </div>
+    <div class="login-top"><span class="icon">👨‍🎓</span><h2>Student Login</h2><p>Enter your Admission Number to access your portal</p></div>
     <div class="login-body">
       {% if error %}<div class="alert alert-error">❌ {{ error }}</div>{% endif %}
       <form method="POST" action="/student_login">
@@ -372,8 +418,8 @@ function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const idx = ['tab-chapters','tab-notes','tab-books','tab-quiz','tab-assign'].indexOf(id);
-  if(idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  const idx = ['tab-chapters','tab-notes','tab-books','tab-quiz','tab-game','tab-assign','tab-feedback'].indexOf(id);
+  if(idx>=0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
 }
 </script>
 </body>
