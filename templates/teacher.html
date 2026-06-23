@@ -5,127 +5,98 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Teacher Portal — MPS LMS</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
-.sidebar {
-  position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
-  background: linear-gradient(180deg, #0e9e82, #0a7a65);
-  color: white; padding: 0; z-index: 100; overflow-y: auto;
-}
-.sb-brand { padding: 22px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.sb-brand .logo { font-size: 28px; display: block; margin-bottom: 6px; }
-.sb-brand h2 { font-size: 15px; font-weight: 700; }
-.sb-brand p { font-size: 11px; opacity: 0.7; margin-top: 2px; }
-.sb-menu { padding: 16px 0; }
-.sb-section { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.5; padding: 8px 20px 4px; }
-.sb-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; font-size: 14px; color: rgba(255,255,255,0.85); text-decoration: none; transition: all 0.15s; cursor: pointer; border: none; background: none; width: 100%; }
-.sb-item:hover, .sb-item.active { background: rgba(255,255,255,0.15); color: white; }
-.sb-item .si { font-size: 18px; width: 22px; }
-
-.main { margin-left: 220px; padding: 28px; min-height: 100vh; }
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.topbar h1 { font-size: 22px; color: #0e9e82; font-weight: 700; }
-.tb-badge { background: #0e9e82; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: white; border-radius: 14px; padding: 18px 14px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-top: 4px solid; }
-.stat-card.c1 { border-top-color: #0e9e82; }
-.stat-card.c2 { border-top-color: #0f4c81; }
-.stat-card.c3 { border-top-color: #f59e0b; }
-.stat-card.c4 { border-top-color: #8b5cf6; }
-.sc-icon { font-size: 26px; margin-bottom: 6px; }
-.sc-num { font-size: 30px; font-weight: 800; color: #0f4c81; }
-.sc-label { font-size: 11px; color: #888; margin-top: 3px; }
-
-.tab-bar { display: flex; gap: 4px; margin-bottom: 20px; background: white; border-radius: 14px; padding: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow-x: auto; }
-.tab-btn { padding: 9px 18px; border-radius: 10px; border: none; background: transparent; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.tab-btn.active { background: #0e9e82; color: white; }
-.tab-btn:hover:not(.active) { background: #f0fdf8; color: #0e9e82; }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-.card { background: white; border-radius: 16px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 20px; }
-.card-title { font-size: 15px; font-weight: 700; color: #0e9e82; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eef5; display: flex; align-items: center; gap: 8px; }
-.full { grid-column: 1/-1; }
-
-label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; }
-select, input[type=text], input[type=date], textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #dde3ec; border-radius: 10px; margin-bottom: 12px; font-size: 13px; background: #fafbfc; font-family: inherit; }
-select:focus, input:focus, textarea:focus { outline: none; border-color: #0e9e82; background: white; }
-textarea { resize: vertical; min-height: 80px; }
-
-.file-type-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
-.ft-opt { position: relative; }
-.ft-opt input[type=radio] { position: absolute; opacity: 0; }
-.ft-label { display: block; text-align: center; padding: 10px 6px; border-radius: 10px; border: 2px solid #e8eef5; cursor: pointer; font-size: 12px; font-weight: 600; color: #888; transition: all 0.15s; }
-.ft-label .flt-icon { display: block; font-size: 22px; margin-bottom: 4px; }
-.ft-opt input[type=radio]:checked + .ft-label { border-color: #0e9e82; background: #f0fdf8; color: #0e9e82; }
-
-.upload-box { border: 2px dashed #0e9e82; border-radius: 12px; padding: 20px; text-align: center; background: #f0fdf8; margin-bottom: 14px; }
-.upload-box p { color: #777; font-size: 12px; margin-bottom: 8px; }
-.upload-box input[type=file] { border: none; background: transparent; width: 100%; font-size: 13px; }
-
-.btn { display: inline-block; padding: 10px 22px; border-radius: 22px; font-size: 13px; font-weight: 600; color: white; border: none; cursor: pointer; text-decoration: none; }
-.btn-teal { background: linear-gradient(135deg, #0e9e82, #1abc9c); }
-.btn-blue { background: linear-gradient(135deg, #0f4c81, #1565c0); }
-.btn-red { background: #ef4444; }
-.btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-.btn-sm { padding: 5px 12px; font-size: 11px; }
-.btn-full { width: 100%; text-align: center; }
-
-table { width: 100%; border-collapse: collapse; }
-thead th { background: #0f4c81; color: white; padding: 10px 12px; text-align: left; font-size: 12px; }
-thead th:first-child { border-radius: 8px 0 0 0; }
-thead th:last-child { border-radius: 0 8px 0 0; }
-tbody td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; font-size: 12px; vertical-align: middle; }
-tbody tr:hover td { background: #f7fffe; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-.bg-green { background: #d1fae5; color: #065f46; }
-.bg-blue { background: #dbeafe; color: #1e40af; }
-.bg-orange { background: #ffedd5; color: #9a3412; }
-.bg-purple { background: #ede9fe; color: #5b21b6; }
-.bg-red { background: #fee2e2; color: #991b1b; }
-
-.empty { text-align: center; padding: 32px; color: #bbb; font-size: 13px; }
-
-/* QUIZ BUILDER */
-.quiz-builder-card { background: #f8faff; border: 2px solid #e0e7ff; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
-.quiz-q-block { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #8b5cf6; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.quiz-q-block h6 { font-size: 13px; color: #8b5cf6; font-weight: 700; margin-bottom: 10px; }
-.quiz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.correct-row { display: flex; align-items: center; gap: 10px; }
-.correct-row label { margin: 0; color: #333; font-size: 13px; }
-.correct-row select { width: auto; margin: 0; padding: 6px 10px; }
-.add-q-btn { background: #ede9fe; color: #7c3aed; border: 2px dashed #8b5cf6; border-radius: 10px; padding: 10px; width: 100%; font-size: 13px; font-weight: 600; cursor: pointer; }
-.add-q-btn:hover { background: #ddd6fe; }
-
-.ch-list { list-style: none; }
-.ch-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; background: #f8fafc; border-left: 4px solid #0e9e82; }
-.ch-num { background: #0f4c81; color: white; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.ch-name { font-size: 13px; color: #333; flex: 1; }
-.ch-count { font-size: 11px; color: #aaa; }
-
-@media(max-width:900px){ .sidebar{width:60px;} .sb-brand p,.sb-brand h2,.sb-section,.sb-item span{display:none;} .main{margin-left:60px;} .grid-2{grid-template-columns:1fr;} .stats-row{grid-template-columns:repeat(2,1fr);} .file-type-grid{grid-template-columns:repeat(2,1fr);} }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:linear-gradient(180deg,#0e9e82,#0a7a65);color:white;padding:0;z-index:100;overflow-y:auto;}
+.sb-brand{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sb-brand .logo{font-size:28px;display:block;margin-bottom:6px;}
+.sb-brand h2{font-size:15px;font-weight:700;}
+.sb-brand p{font-size:11px;opacity:0.7;margin-top:2px;}
+.sb-menu{padding:16px 0;}
+.sb-section{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:0.5;padding:8px 20px 4px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:14px;color:rgba(255,255,255,0.85);text-decoration:none;transition:all 0.15s;cursor:pointer;border:none;background:none;width:100%;}
+.sb-item:hover,.sb-item.active{background:rgba(255,255,255,0.15);color:white;}
+.sb-item .si{font-size:18px;width:22px;}
+.main{margin-left:220px;padding:28px;min-height:100vh;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.topbar h1{font-size:22px;color:#0e9e82;font-weight:700;}
+.tb-badge{background:#0e9e82;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:white;border-radius:14px;padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-top:4px solid;}
+.stat-card.c1{border-top-color:#0e9e82;}.stat-card.c2{border-top-color:#0f4c81;}.stat-card.c3{border-top-color:#f59e0b;}.stat-card.c4{border-top-color:#8b5cf6;}.stat-card.c5{border-top-color:#ef4444;}
+.sc-icon{font-size:26px;margin-bottom:6px;}.sc-num{font-size:30px;font-weight:800;color:#0f4c81;}.sc-label{font-size:11px;color:#888;margin-top:3px;}
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;background:white;border-radius:14px;padding:6px;box-shadow:0 2px 10px rgba(0,0,0,0.06);overflow-x:auto;flex-wrap:wrap;}
+.tab-btn{padding:9px 16px;border-radius:10px;border:none;background:transparent;font-size:12px;font-weight:600;color:#888;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.tab-btn.active{background:#0e9e82;color:white;}
+.tab-btn:hover:not(.active){background:#f0fdf8;color:#0e9e82;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.card{background:white;border-radius:16px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:20px;}
+.card-title{font-size:15px;font-weight:700;color:#0e9e82;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #e8eef5;display:flex;align-items:center;gap:8px;}
+label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px;}
+select,input[type=text],input[type=date],input[type=url],textarea{width:100%;padding:10px 12px;border:1.5px solid #dde3ec;border-radius:10px;margin-bottom:12px;font-size:13px;background:#fafbfc;font-family:inherit;}
+select:focus,input:focus,textarea:focus{outline:none;border-color:#0e9e82;background:white;}
+textarea{resize:vertical;min-height:80px;}
+.file-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.ft-opt{position:relative;}.ft-opt input[type=radio]{position:absolute;opacity:0;}
+.ft-label{display:block;text-align:center;padding:10px 6px;border-radius:10px;border:2px solid #e8eef5;cursor:pointer;font-size:12px;font-weight:600;color:#888;transition:all 0.15s;}
+.ft-label .flt-icon{display:block;font-size:22px;margin-bottom:4px;}
+.ft-opt input[type=radio]:checked+.ft-label{border-color:#0e9e82;background:#f0fdf8;color:#0e9e82;}
+.upload-box{border:2px dashed #0e9e82;border-radius:12px;padding:20px;text-align:center;background:#f0fdf8;margin-bottom:14px;}
+.upload-box p{color:#777;font-size:12px;margin-bottom:8px;}
+.upload-box input[type=file]{border:none;background:transparent;width:100%;font-size:13px;}
+.btn{display:inline-block;padding:10px 22px;border-radius:22px;font-size:13px;font-weight:600;color:white;border:none;cursor:pointer;text-decoration:none;}
+.btn-teal{background:linear-gradient(135deg,#0e9e82,#1abc9c);}
+.btn-blue{background:linear-gradient(135deg,#0f4c81,#1565c0);}
+.btn-red{background:#ef4444;}.btn-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);}
+.btn-orange{background:linear-gradient(135deg,#f59e0b,#d97706);}
+.btn-sm{padding:5px 12px;font-size:11px;}.btn-full{width:100%;text-align:center;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#0f4c81;color:white;padding:10px 12px;text-align:left;font-size:12px;}
+thead th:first-child{border-radius:8px 0 0 0;}thead th:last-child{border-radius:0 8px 0 0;}
+tbody td{padding:10px 12px;border-bottom:1px solid #f0f3f8;font-size:12px;vertical-align:middle;}
+tbody tr:hover td{background:#f7fffe;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bg-green{background:#d1fae5;color:#065f46;}.bg-blue{background:#dbeafe;color:#1e40af;}
+.bg-orange{background:#ffedd5;color:#9a3412;}.bg-purple{background:#ede9fe;color:#5b21b6;}
+.bg-red{background:#fee2e2;color:#991b1b;}.bg-teal{background:#ccfbf1;color:#0f766e;}
+.empty{text-align:center;padding:32px;color:#bbb;font-size:13px;}
+.quiz-q-block{background:white;border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid #8b5cf6;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.quiz-q-block h6{font-size:13px;color:#8b5cf6;font-weight:700;margin-bottom:10px;}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.pair-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+.pair-row input{margin-bottom:0;}
+.ch-config-row{display:flex;align-items:center;gap:12px;padding:14px;background:#f8fafc;border-radius:12px;margin-bottom:8px;border-left:4px solid #0e9e82;flex-wrap:wrap;}
+.ch-config-num{background:#0f4c81;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ch-config-name{font-size:13px;font-weight:700;color:#0f4c81;flex:1;min-width:120px;}
+.toggle-group{display:flex;gap:8px;flex-wrap:wrap;}
+.toggle-check{display:flex;align-items:center;gap:4px;font-size:11px;color:#555;}
+.toggle-check input{width:auto;margin:0;padding:0;}
+.month-select{width:auto;padding:6px 10px;margin:0;font-size:12px;}
+.ch-list{list-style:none;}
+.ch-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:#f8fafc;border-left:4px solid #0e9e82;}
+.ch-num{background:#0f4c81;color:white;border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.ch-name{font-size:13px;color:#333;flex:1;}
+.ch-count{font-size:11px;color:#aaa;}
+.add-q-btn{background:#ede9fe;color:#7c3aed;border:2px dashed #8b5cf6;border-radius:10px;padding:10px;width:100%;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;}
+.add-q-btn:hover{background:#ddd6fe;}
+@media(max-width:900px){.sidebar{width:60px;}.sb-brand p,.sb-brand h2,.sb-section,.sb-item span{display:none;}.main{margin-left:60px;}.grid-2{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
 <body>
-
-<!-- SIDEBAR -->
 <div class="sidebar">
-  <div class="sb-brand">
-    <span class="logo">👩‍🏫</span>
-    <h2>Teacher Portal</h2>
-    <p>{{ teacher_name }}</p>
-  </div>
+  <div class="sb-brand"><span class="logo">👩‍🏫</span><h2>Teacher Portal</h2><p>{{ teacher_name }}</p></div>
   <div class="sb-menu">
     <div class="sb-section">Content</div>
+    <button class="sb-item" onclick="showTab('tab-chapters-cfg')"><span class="si">⚙️</span><span>Chapter Setup</span></button>
     <button class="sb-item" onclick="showTab('tab-upload')"><span class="si">📤</span><span>Upload Material</span></button>
+    <button class="sb-item" onclick="showTab('tab-video')"><span class="si">🎬</span><span>Videos</span></button>
     <button class="sb-item" onclick="showTab('tab-notes')"><span class="si">📎</span><span>Notes</span></button>
     <button class="sb-item" onclick="showTab('tab-books')"><span class="si">📗</span><span>Books</span></button>
     <button class="sb-item" onclick="showTab('tab-mcq')"><span class="si">🧠</span><span>MCQ Quizzes</span></button>
+    <button class="sb-item" onclick="showTab('tab-game')"><span class="si">🎮</span><span>Games</span></button>
     <button class="sb-item" onclick="showTab('tab-assign')"><span class="si">📝</span><span>Assignments</span></button>
-    <div class="sb-section">Overview</div>
-    <button class="sb-item" onclick="showTab('tab-chapters')"><span class="si">📚</span><span>Chapters</span></button>
+    <button class="sb-item" onclick="showTab('tab-feedback')"><span class="si">💬</span><span>Feedbacks</span></button>
     <div class="sb-section">Navigation</div>
     <a href="/admin" class="sb-item"><span class="si">📊</span><span>Admin</span></a>
     <a href="/" class="sb-item"><span class="si">🏠</span><span>Home</span></a>
@@ -136,417 +107,426 @@ tbody tr:hover td { background: #f7fffe; }
 <div class="main">
   <div class="topbar">
     <h1>👩‍🏫 Teacher Portal</h1>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <span class="tb-badge">{{ teacher_name }}</span>
-    </div>
+    <span class="tb-badge">{{ teacher_name }}</span>
   </div>
 
-  <!-- Stats -->
   <div class="stats-row">
-    <div class="stat-card c1">
-      <div class="sc-icon">📎</div>
-      <div class="sc-num">{{ notes|length }}</div>
-      <div class="sc-label">Notes</div>
-    </div>
-    <div class="stat-card c2">
-      <div class="sc-icon">📗</div>
-      <div class="sc-num">{{ books|length }}</div>
-      <div class="sc-label">Books</div>
-    </div>
-    <div class="stat-card c3">
-      <div class="sc-icon">🧠</div>
-      <div class="sc-num">{{ quizzes|length }}</div>
-      <div class="sc-label">MCQ Quizzes</div>
-    </div>
-    <div class="stat-card c4">
-      <div class="sc-icon">📝</div>
-      <div class="sc-num">{{ assignments|length }}</div>
-      <div class="sc-label">Assignments</div>
-    </div>
+    <div class="stat-card c1"><div class="sc-icon">📎</div><div class="sc-num">{{ notes|length }}</div><div class="sc-label">Notes</div></div>
+    <div class="stat-card c2"><div class="sc-icon">📗</div><div class="sc-num">{{ books|length }}</div><div class="sc-label">Books</div></div>
+    <div class="stat-card c3"><div class="sc-icon">🧠</div><div class="sc-num">{{ quizzes|length }}</div><div class="sc-label">Quizzes</div></div>
+    <div class="stat-card c4"><div class="sc-icon">🎮</div><div class="sc-num">{{ games|length }}</div><div class="sc-label">Games</div></div>
+    <div class="stat-card c5"><div class="sc-icon">🎬</div><div class="sc-num">{{ videos|length }}</div><div class="sc-label">Videos</div></div>
   </div>
 
-  <!-- Tab Bar -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="showTab('tab-upload')">⬆ Upload Material</button>
-    <button class="tab-btn" onclick="showTab('tab-notes')">📎 Notes ({{ notes|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-books')">📗 Books ({{ books|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-mcq')">🧠 MCQ Quizzes ({{ quizzes|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-assign')">📝 Assignments ({{ assignments|length }})</button>
-    <button class="tab-btn" onclick="showTab('tab-chapters')">📚 Chapter View</button>
+    <button class="tab-btn active" onclick="showTab('tab-chapters-cfg')">⚙️ Chapter Setup</button>
+    <button class="tab-btn" onclick="showTab('tab-upload')">📤 Upload</button>
+    <button class="tab-btn" onclick="showTab('tab-video')">🎬 Videos</button>
+    <button class="tab-btn" onclick="showTab('tab-notes')">📎 Notes</button>
+    <button class="tab-btn" onclick="showTab('tab-books')">📗 Books</button>
+    <button class="tab-btn" onclick="showTab('tab-mcq')">🧠 Quizzes</button>
+    <button class="tab-btn" onclick="showTab('tab-game')">🎮 Games</button>
+    <button class="tab-btn" onclick="showTab('tab-assign')">📝 Assignments</button>
+    <button class="tab-btn" onclick="showTab('tab-feedback')">💬 Feedbacks</button>
   </div>
 
-  <!-- TAB: UPLOAD -->
-  <div id="tab-upload" class="tab-content active">
-    <div class="grid-2">
+  <!-- CHAPTER SETUP -->
+  <div id="tab-chapters-cfg" class="tab-content active">
+    <div class="card">
+      <div class="card-title">⚙️ Chapter Activation & Content Setup</div>
+      <p style="font-size:12px;color:#888;margin-bottom:16px;">Activate chapters month-wise and select which content types are required for 100% completion.</p>
+      {% for ch in chapters %}
+      {% set cfg = configs.get(ch.no) %}
+      <form method="POST" action="/save_chapter_config" style="margin-bottom:8px;">
+        <input type="hidden" name="chapter_no" value="{{ ch.no }}">
+        <div class="ch-config-row">
+          <div class="ch-config-num">{{ ch.no }}</div>
+          <div class="ch-config-name">{{ ch.name }}</div>
+          <div class="toggle-group">
+            <label class="toggle-check"><input type="checkbox" name="is_active" {% if cfg and cfg.is_active %}checked{% endif %}> 🟢 Active</label>
+            <select name="active_month" class="month-select">
+              <option value="">Month</option>
+              {% for m in months %}<option value="{{ m }}" {% if cfg and cfg.active_month==m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+            </select>
+            <label class="toggle-check"><input type="checkbox" name="has_video" {% if cfg and cfg.has_video %}checked{% endif %}> 🎬</label>
+            <label class="toggle-check"><input type="checkbox" name="has_notes" {% if cfg and cfg.has_notes %}checked{% endif %}> 📎</label>
+            <label class="toggle-check"><input type="checkbox" name="has_book" {% if cfg and cfg.has_book %}checked{% endif %}> 📗</label>
+            <label class="toggle-check"><input type="checkbox" name="has_quiz" {% if cfg and cfg.has_quiz %}checked{% endif %}> 🧠</label>
+            <label class="toggle-check"><input type="checkbox" name="has_game" {% if cfg and cfg.has_game %}checked{% endif %}> 🎮</label>
+            <label class="toggle-check"><input type="checkbox" name="has_feedback" {% if cfg and cfg.has_feedback %}checked{% endif %}> 💬</label>
+          </div>
+          <button type="submit" class="btn btn-teal btn-sm">Save</button>
+        </div>
+      </form>
+      {% endfor %}
+      <p style="font-size:11px;color:#aaa;margin-top:8px;">🎬 Video &nbsp;📎 Notes &nbsp;📗 Book &nbsp;🧠 Quiz &nbsp;🎮 Game &nbsp;💬 Feedback — checked = required for 100%</p>
+    </div>
+  </div>
 
-      <!-- Upload Notes / Book -->
+  <!-- UPLOAD -->
+  <div id="tab-upload" class="tab-content">
+    <div class="grid-2">
       <div class="card">
         <div class="card-title">📤 Upload Material</div>
         <form method="POST" action="/upload_notes" enctype="multipart/form-data">
-          <label>Material Type</label>
+          <label>Type</label>
           <div class="file-type-grid">
-            <div class="ft-opt">
-              <input type="radio" name="file_type" id="ft-notes" value="notes" checked>
-              <label for="ft-notes" class="ft-label"><span class="flt-icon">📎</span>Notes</label>
-            </div>
-            <div class="ft-opt">
-              <input type="radio" name="file_type" id="ft-book" value="book">
-              <label for="ft-book" class="ft-label"><span class="flt-icon">📗</span>Book PDF</label>
-            </div>
-            <div class="ft-opt">
-              <input type="radio" name="file_type" id="ft-quiz" value="quiz">
-              <label for="ft-quiz" class="ft-label"><span class="flt-icon">📋</span>Quiz File</label>
-            </div>
-            <div class="ft-opt">
-              <input type="radio" name="file_type" id="ft-test" value="test">
-              <label for="ft-test" class="ft-label"><span class="flt-icon">📄</span>Test Paper</label>
-            </div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-notes" value="notes" checked><label for="ft-notes" class="ft-label"><span class="flt-icon">📎</span>Notes</label></div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-book" value="book"><label for="ft-book" class="ft-label"><span class="flt-icon">📗</span>Book PDF</label></div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-test" value="test"><label for="ft-test" class="ft-label"><span class="flt-icon">📄</span>Test Paper</label></div>
           </div>
-
           <label>Chapter</label>
-          <select name="chapter" id="chSelect" onchange="syncChapterNo()" required>
-            <option value="">— Select Chapter —</option>
-            {% for ch in chapters %}
-            <option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>
-            {% endfor %}
+          <select name="chapter" id="chSelect" onchange="syncNo('chSelect','chapter_no_notes')" required>
+            <option value="">— Select —</option>
+            {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
           </select>
           <input type="hidden" name="chapter_no" id="chapter_no_notes">
-
           <label>Section</label>
           <select name="section" required>
-            <option value="">— Select Section —</option>
-            {% for sec in sections %}
-            <option>{{ sec }}</option>
-            {% endfor %}
+            <option value="">— Select —</option>
+            {% for sec in sections %}<option>{{ sec }}</option>{% endfor %}
             <option value="All Sections">All Sections</option>
           </select>
-
-          <div class="upload-box">
-            <p>📄 PDF / Word / PowerPoint / Image</p>
-            <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" required>
-          </div>
-
-          <label>Description (optional)</label>
+          <div class="upload-box"><p>📄 PDF / Word / PowerPoint / Image</p><input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" required></div>
+          <label>Description</label>
           <input type="text" name="description" placeholder="Brief description...">
           <button class="btn btn-teal btn-full" type="submit">⬆ Upload</button>
         </form>
       </div>
-
-      <!-- Create Assignment -->
       <div class="card">
         <div class="card-title">📝 Create Assignment</div>
         <form method="POST" action="/create_assignment" enctype="multipart/form-data">
-          <label>Assignment Title</label>
-          <input type="text" name="title" placeholder="e.g. Ch1 Practice Questions" required>
-
+          <label>Title</label><input type="text" name="title" required>
           <label>Chapter</label>
-          <select name="chapter" id="chSelectA" onchange="syncChapterNoA()" required>
-            <option value="">— Select Chapter —</option>
-            {% for ch in chapters %}
-            <option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>
-            {% endfor %}
+          <select name="chapter" id="chSelectA" onchange="syncNo('chSelectA','chapter_no_assign')" required>
+            <option value="">— Select —</option>
+            {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
           </select>
           <input type="hidden" name="chapter_no" id="chapter_no_assign">
-
           <label>Section</label>
           <select name="section">
             <option value="">All Sections</option>
-            {% for sec in sections %}
-            <option>{{ sec }}</option>
-            {% endfor %}
+            {% for sec in sections %}<option>{{ sec }}</option>{% endfor %}
           </select>
-
-          <label>Instructions / Description</label>
-          <textarea name="description" placeholder="Write assignment instructions here..."></textarea>
-
-          <label>Attach File (optional)</label>
-          <div class="upload-box" style="margin-bottom:12px;">
-            <p>📎 Attach assignment paper (PDF/Word/Image)</p>
-            <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-          </div>
-
-          <label>Due Date</label>
-          <input type="date" name="due_date">
-          <button class="btn btn-blue btn-full" type="submit">✅ Create Assignment</button>
+          <label>Instructions</label><textarea name="description"></textarea>
+          <div class="upload-box" style="margin-bottom:12px;"><p>📎 Attach paper (optional)</p><input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"></div>
+          <label>Due Date</label><input type="date" name="due_date">
+          <button class="btn btn-blue btn-full" type="submit">✅ Create</button>
         </form>
       </div>
-
     </div>
   </div>
 
-  <!-- TAB: NOTES -->
+  <!-- VIDEO -->
+  <div id="tab-video" class="tab-content">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🎬 Add Chapter Video</div>
+        <form method="POST" action="/add_video">
+          <label>Chapter</label>
+          <select name="chapter" id="chSelectV" onchange="syncNo('chSelectV','chapter_no_video')" required>
+            <option value="">— Select —</option>
+            {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
+          </select>
+          <input type="hidden" name="chapter_no" id="chapter_no_video">
+          <label>Section</label>
+          <select name="section">
+            <option value="All Sections">All Sections</option>
+            {% for sec in sections %}<option>{{ sec }}</option>{% endfor %}
+          </select>
+          <label>YouTube URL</label>
+          <input type="url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." required>
+          <label>Video Title</label>
+          <input type="text" name="title" placeholder="e.g. Ch1 Internet Services Explained">
+          <button class="btn btn-red btn-full" type="submit">🎬 Add Video</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-title">🎬 All Videos</div>
+        {% if videos %}
+        <table>
+          <thead><tr><th>Title</th><th>Chapter</th><th>Section</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for v in videos %}
+            <tr>
+              <td><strong>{{ v.title }}</strong></td>
+              <td style="font-size:11px;">{{ v.chapter }}</td>
+              <td><span class="badge bg-blue">{{ v.section }}</span></td>
+              <td><a href="{{ v.youtube_url }}" class="btn btn-red btn-sm" target="_blank">▶</a> <a href="/delete_video/{{ v.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">🎬 No videos added yet.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
   <div id="tab-notes" class="tab-content">
     <div class="card">
       <div class="card-title">📎 All Notes</div>
       {% if notes %}
       <table>
         <thead><tr><th>#</th><th>File</th><th>Chapter</th><th>Section</th><th>Description</th><th>Uploaded</th><th>Actions</th></tr></thead>
-        <tbody>
-          {% for n in notes %}
-          <tr>
-            <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
-            <td>📎 <strong>{{ n.original_name or n.filename }}</strong></td>
-            <td style="font-size:11px;color:#666;">{{ n.chapter }}</td>
-            <td><span class="badge bg-blue">{{ n.section }}</span></td>
-            <td style="color:#777;font-size:11px;">{{ n.description or '—' }}</td>
-            <td style="color:#aaa;font-size:11px;">{{ n.uploaded_at or '—' }}</td>
-            <td>
-              <a href="/uploads/{{ n.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a>
-              <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete this file?')">🗑</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <tbody>{% for n in notes %}<tr>
+          <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
+          <td>📎 <strong>{{ n.original_name or n.filename }}</strong></td>
+          <td style="font-size:11px;">{{ n.chapter }}</td>
+          <td><span class="badge bg-blue">{{ n.section }}</span></td>
+          <td style="color:#777;font-size:11px;">{{ n.description or '—' }}</td>
+          <td style="color:#aaa;font-size:11px;">{{ n.uploaded_at or '—' }}</td>
+          <td><a href="/uploads/{{ n.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>{% endfor %}</tbody>
       </table>
-      {% else %}
-      <div class="empty">📎 No notes uploaded yet.</div>
-      {% endif %}
+      {% else %}<div class="empty">No notes uploaded yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: BOOKS -->
+  <!-- BOOKS -->
   <div id="tab-books" class="tab-content">
     <div class="card">
       <div class="card-title">📗 Book PDFs</div>
       {% if books %}
       <table>
-        <thead><tr><th>#</th><th>Book File</th><th>Chapter</th><th>Section</th><th>Description</th><th>Actions</th></tr></thead>
-        <tbody>
-          {% for b in books %}
-          <tr>
-            <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
-            <td>📗 <strong>{{ b.original_name or b.filename }}</strong></td>
-            <td style="font-size:11px;color:#666;">{{ b.chapter }}</td>
-            <td><span class="badge bg-green">{{ b.section }}</span></td>
-            <td style="color:#777;font-size:11px;">{{ b.description or '—' }}</td>
-            <td>
-              <a href="/uploads/{{ b.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a>
-              <a href="/delete_note/{{ b.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete this book?')">🗑</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <thead><tr><th>#</th><th>File</th><th>Chapter</th><th>Section</th><th>Actions</th></tr></thead>
+        <tbody>{% for b in books %}<tr>
+          <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
+          <td>📗 <strong>{{ b.original_name or b.filename }}</strong></td>
+          <td style="font-size:11px;">{{ b.chapter }}</td>
+          <td><span class="badge bg-green">{{ b.section }}</span></td>
+          <td><a href="/uploads/{{ b.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note/{{ b.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>{% endfor %}</tbody>
       </table>
-      {% else %}
-      <div class="empty">📗 No book PDFs uploaded yet.</div>
-      {% endif %}
+      {% else %}<div class="empty">No books uploaded yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: MCQ QUIZZES -->
+  <!-- MCQ QUIZZES -->
   <div id="tab-mcq" class="tab-content">
-
-    <!-- Create Quiz Form -->
     <div class="card">
-      <div class="card-title">🧠 Create New MCQ Quiz</div>
+      <div class="card-title">🧠 Create Quiz</div>
       <form method="POST" action="/create_quiz">
         <div class="grid-2" style="margin-bottom:0;">
           <div>
-            <label>Quiz Title</label>
-            <input type="text" name="title" placeholder="e.g. Ch1 Internet Services Quiz" required>
-          </div>
-          <div>
-            <label>Section</label>
-            <select name="section">
-              <option value="All Sections">All Sections</option>
-              {% for sec in sections %}
-              <option value="{{ sec }}">{{ sec }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div>
+            <label>Title</label><input type="text" name="title" required>
             <label>Chapter</label>
-            <select name="chapter" id="chSelectQ" onchange="syncChapterNoQ()" required>
-              <option value="">— Select Chapter —</option>
-              {% for ch in chapters %}
-              <option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>
-              {% endfor %}
+            <select name="chapter" id="chSelectQ" onchange="syncNo('chSelectQ','chapter_no_quiz')" required>
+              <option value="">— Select —</option>
+              {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
             </select>
             <input type="hidden" name="chapter_no" id="chapter_no_quiz">
           </div>
           <div>
-            <label>Description (optional)</label>
-            <input type="text" name="description" placeholder="Brief description...">
+            <label>Section</label>
+            <select name="section"><option value="All Sections">All Sections</option>{% for sec in sections %}<option>{{ sec }}</option>{% endfor %}</select>
+            <label>Quiz Type</label>
+            <select name="quiz_type" id="quiz_type_sel" onchange="toggleQuizType()">
+              <option value="mcq">MCQ (built in LMS)</option>
+              <option value="link">External Link (Google Form etc.)</option>
+            </select>
+            <label>Description</label><input type="text" name="description">
           </div>
         </div>
-
-        <div style="margin-top:16px;margin-bottom:10px;font-size:13px;font-weight:700;color:#8b5cf6;">📋 Questions</div>
-        <div id="quiz-questions-container">
-          <div class="quiz-q-block">
-            <h6>Question 1</h6>
-            <input type="text" name="question_text" class="form-control" placeholder="Type your question here..." required style="width:100%;padding:9px 12px;border:1.5px solid #dde3ec;border-radius:10px;margin-bottom:10px;font-size:13px;font-family:inherit;">
-            <div class="quiz-opts">
-              <input type="text" name="option_a" placeholder="Option A" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-              <input type="text" name="option_b" placeholder="Option B" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-              <input type="text" name="option_c" placeholder="Option C" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-              <input type="text" name="option_d" placeholder="Option D" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-            </div>
-            <div class="correct-row">
-              <label>✅ Correct Answer:</label>
-              <select name="correct_option" style="width:auto;padding:6px 12px;border:1.5px solid #dde3ec;border-radius:8px;margin-bottom:0;">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-              </select>
+        <div id="mcq-section" style="margin-top:14px;">
+          <div style="font-size:13px;font-weight:700;color:#8b5cf6;margin-bottom:10px;">📋 Questions</div>
+          <div id="quiz-questions-container">
+            <div class="quiz-q-block">
+              <h6>Question 1</h6>
+              <input type="text" name="question_text" placeholder="Question..." required style="width:100%;padding:9px;border:1.5px solid #dde3ec;border-radius:8px;margin-bottom:8px;font-size:13px;font-family:inherit;">
+              <div class="quiz-opts">
+                <input type="text" name="option_a" placeholder="Option A" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+                <input type="text" name="option_b" placeholder="Option B" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+                <input type="text" name="option_c" placeholder="Option C" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+                <input type="text" name="option_d" placeholder="Option D" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <label style="margin:0;">✅ Correct:</label>
+                <select name="correct_option" style="width:auto;padding:6px;border:1.5px solid #dde3ec;border-radius:8px;margin:0;"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+              </div>
             </div>
           </div>
+          <button type="button" class="add-q-btn" onclick="addQuestion()">+ Add Question</button>
         </div>
-
-        <button type="button" class="add-q-btn" onclick="addQuestion()">+ Add Another Question</button>
-        <div style="margin-top:14px;">
-          <button type="submit" class="btn btn-purple">🧠 Save Quiz</button>
+        <div id="link-section" style="display:none;">
+          <label>External Quiz Link</label>
+          <input type="url" name="external_link" placeholder="https://forms.google.com/...">
         </div>
+        <button type="submit" class="btn btn-purple">🧠 Save Quiz</button>
       </form>
     </div>
-
-    <!-- Existing Quizzes List -->
     <div class="card">
-      <div class="card-title">📋 All MCQ Quizzes</div>
+      <div class="card-title">📋 All Quizzes</div>
       {% if quizzes %}
       <table>
-        <thead><tr><th>#</th><th>Quiz Title</th><th>Chapter</th><th>Section</th><th>Questions</th><th>Attempts</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody>
-          {% for q in quizzes %}
-          <tr>
-            <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
-            <td><strong>{{ q.title }}</strong>{% if q.description %}<div style="font-size:11px;color:#888;">{{ q.description }}</div>{% endif %}</td>
-            <td style="font-size:11px;color:#666;">{{ q.chapter }}</td>
-            <td><span class="badge bg-purple">{{ q.section }}</span></td>
-            <td><span class="badge bg-blue">{{ q.questions|length }} Qs</span></td>
-            <td><span class="badge bg-green">{{ q.attempts|length }} attempts</span></td>
-            <td style="color:#aaa;font-size:11px;">{{ q.created_at or '—' }}</td>
-            <td>
-              <a href="/quiz_results/{{ q.id }}" class="btn btn-blue btn-sm">📊 Results</a>
-              <a href="/delete_quiz/{{ q.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete this quiz and all results?')">🗑</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <thead><tr><th>#</th><th>Title</th><th>Type</th><th>Chapter</th><th>Section</th><th>Qs</th><th>Attempts</th><th>Actions</th></tr></thead>
+        <tbody>{% for q in quizzes %}<tr>
+          <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
+          <td><strong>{{ q.title }}</strong></td>
+          <td><span class="badge {% if q.quiz_type=='mcq' %}bg-purple{% else %}bg-orange{% endif %}">{{ q.quiz_type|upper }}</span></td>
+          <td style="font-size:11px;">{{ q.chapter }}</td>
+          <td><span class="badge bg-blue">{{ q.section }}</span></td>
+          <td>{% if q.quiz_type=='mcq' %}{{ q.questions|length }}{% else %}—{% endif %}</td>
+          <td><span class="badge bg-green">{{ q.attempts|length }}</span></td>
+          <td>{% if q.quiz_type=='mcq' %}<a href="/quiz_results/{{ q.id }}" class="btn btn-blue btn-sm">📊</a>{% endif %} <a href="/delete_quiz/{{ q.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>{% endfor %}</tbody>
       </table>
-      {% else %}
-      <div class="empty">🧠 No MCQ quizzes created yet. Create one above!</div>
-      {% endif %}
+      {% else %}<div class="empty">No quizzes yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: ASSIGNMENTS -->
+  <!-- GAMES -->
+  <div id="tab-game" class="tab-content">
+    <div class="card">
+      <div class="card-title">🎮 Create Drag & Drop Game</div>
+      <form method="POST" action="/create_game">
+        <div class="grid-2" style="margin-bottom:0;">
+          <div>
+            <label>Game Title</label><input type="text" name="title" required>
+            <label>Chapter</label>
+            <select name="chapter" id="chSelectG" onchange="syncNo('chSelectG','chapter_no_game')" required>
+              <option value="">— Select —</option>
+              {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
+            </select>
+            <input type="hidden" name="chapter_no" id="chapter_no_game">
+          </div>
+          <div>
+            <label>Section</label>
+            <select name="section"><option value="All Sections">All Sections</option>{% for sec in sections %}<option>{{ sec }}</option>{% endfor %}</select>
+          </div>
+        </div>
+        <div style="margin:14px 0 8px;font-size:13px;font-weight:700;color:#0e9e82;">🃏 Word Pairs (Term → Definition)</div>
+        <div id="pairs-container">
+          <div class="pair-row">
+            <input type="text" name="term" placeholder="Term (e.g. CPU)" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+            <input type="text" name="definition" placeholder="Definition (e.g. Processing Unit)" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+            <span></span>
+          </div>
+        </div>
+        <button type="button" onclick="addPair()" style="background:#e0fdf4;color:#065f46;border:2px dashed #10b981;border-radius:10px;padding:9px;width:100%;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;">+ Add Pair</button>
+        <button type="submit" class="btn btn-orange">🎮 Save Game</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-title">🎮 All Games</div>
+      {% if games %}
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>Chapter</th><th>Section</th><th>Pairs</th><th>Players</th><th>Actions</th></tr></thead>
+        <tbody>{% for g in games %}<tr>
+          <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
+          <td><strong>{{ g.title }}</strong></td>
+          <td style="font-size:11px;">{{ g.chapter }}</td>
+          <td><span class="badge bg-orange">{{ g.section }}</span></td>
+          <td><span class="badge bg-teal">{{ g.pairs|length }} pairs</span></td>
+          <td><span class="badge bg-green">{{ g.scores|length }}</span></td>
+          <td><a href="/game_leaderboard/{{ g.id }}" class="btn btn-orange btn-sm">🏆</a> <a href="/delete_game/{{ g.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>{% endfor %}</tbody>
+      </table>
+      {% else %}<div class="empty">No games yet.</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- ASSIGNMENTS -->
   <div id="tab-assign" class="tab-content">
     <div class="card">
       <div class="card-title">📝 All Assignments</div>
       {% if assignments %}
       <table>
-        <thead><tr><th>#</th><th>Title</th><th>Chapter</th><th>Section</th><th>Due Date</th><th>File</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody>
-          {% for a in assignments %}
-          <tr>
-            <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
-            <td>
-              <strong>{{ a.title }}</strong>
-              {% if a.description %}<div style="font-size:11px;color:#888;margin-top:2px;">{{ a.description[:60] }}{% if a.description|length > 60 %}…{% endif %}</div>{% endif %}
-            </td>
-            <td style="font-size:11px;color:#666;">{{ a.chapter }}</td>
-            <td><span class="badge bg-blue">{{ a.section or 'All' }}</span></td>
-            <td style="color:#e74c3c;font-size:12px;font-weight:600;">{{ a.due_date or '—' }}</td>
-            <td>
-              {% if a.filename %}
-              <a href="/uploads/{{ a.filename }}" class="btn btn-teal btn-sm" target="_blank">📎 View</a>
-              {% else %}—{% endif %}
-            </td>
-            <td style="color:#aaa;font-size:11px;">{{ a.created_at or '—' }}</td>
-            <td><a href="/delete_assignment/{{ a.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete this assignment?')">🗑</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <thead><tr><th>#</th><th>Title</th><th>Chapter</th><th>Section</th><th>Due</th><th>File</th><th>Actions</th></tr></thead>
+        <tbody>{% for a in assignments %}<tr>
+          <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
+          <td><strong>{{ a.title }}</strong></td>
+          <td style="font-size:11px;">{{ a.chapter }}</td>
+          <td><span class="badge bg-blue">{{ a.section or 'All' }}</span></td>
+          <td style="color:#e74c3c;font-size:12px;font-weight:600;">{{ a.due_date or '—' }}</td>
+          <td>{% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-teal btn-sm" target="_blank">📎</a>{% else %}—{% endif %}</td>
+          <td><a href="/delete_assignment/{{ a.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>{% endfor %}</tbody>
       </table>
-      {% else %}
-      <div class="empty">📝 No assignments yet. Create one from the Upload tab.</div>
-      {% endif %}
+      {% else %}<div class="empty">No assignments yet.</div>{% endif %}
     </div>
   </div>
 
-  <!-- TAB: CHAPTERS -->
-  <div id="tab-chapters" class="tab-content">
+  <!-- FEEDBACKS -->
+  <div id="tab-feedback" class="tab-content">
     <div class="card">
-      <div class="card-title">📚 Chapter Overview</div>
-      <ul class="ch-list">
-        {% for ch in chapters %}
-        <li class="ch-item">
-          <span class="ch-num">{{ ch.no }}</span>
-          <span class="ch-name">{{ ch.name }}</span>
-          {% set ch_notes = notes|selectattr('chapter_no','eq',ch.no)|list|length %}
-          {% set ch_books = books|selectattr('chapter_no','eq',ch.no)|list|length %}
-          {% set ch_quiz = quizzes|selectattr('chapter_no','eq',ch.no)|list|length %}
-          {% set ch_assign = assignments|selectattr('chapter_no','eq',ch.no)|list|length %}
-          <span class="ch-count">📎{{ ch_notes }} 📗{{ ch_books }} 🧠{{ ch_quiz }} 📝{{ ch_assign }}</span>
-        </li>
-        {% endfor %}
-      </ul>
+      <div class="card-title">💬 Student Feedbacks</div>
+      <div style="margin-bottom:14px;">
+        <a href="/view_feedbacks" class="btn btn-blue btn-sm">📊 View All Feedbacks</a>
+        {% for ch in chapters %}<a href="/view_feedbacks?chapter_no={{ ch.no }}" class="btn btn-sm" style="background:#f0f4f8;color:#555;margin:2px;">Ch{{ ch.no }}</a>{% endfor %}
+      </div>
+      {% if feedbacks %}
+      <table>
+        <thead><tr><th>Student</th><th>Chapter</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead>
+        <tbody>{% for f in feedbacks %}<tr>
+          <td><strong>{{ f.student.student_name }}</strong></td>
+          <td>Ch {{ f.chapter_no }}</td>
+          <td>{% for i in range(f.rating) %}⭐{% endfor %}</td>
+          <td style="font-size:11px;color:#666;">{{ f.comment or '—' }}</td>
+          <td style="font-size:11px;color:#aaa;">{{ f.submitted_at }}</td>
+        </tr>{% endfor %}</tbody>
+      </table>
+      {% else %}<div class="empty">No feedbacks yet.</div>{% endif %}
     </div>
   </div>
 
 </div>
 
 <script>
-const TAB_IDS = ['tab-upload','tab-notes','tab-books','tab-mcq','tab-assign','tab-chapters'];
-
+const TAB_IDS = ['tab-chapters-cfg','tab-upload','tab-video','tab-notes','tab-books','tab-mcq','tab-game','tab-assign','tab-feedback'];
 function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   const idx = TAB_IDS.indexOf(id);
-  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if(idx>=0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
 }
-
-function syncChapterNo() {
-  const sel = document.getElementById('chSelect');
+function syncNo(selId, hiddenId) {
+  const sel = document.getElementById(selId);
   const opt = sel.options[sel.selectedIndex];
-  document.getElementById('chapter_no_notes').value = opt.getAttribute('data-no') || 0;
+  document.getElementById(hiddenId).value = opt.getAttribute('data-no') || 0;
 }
-function syncChapterNoA() {
-  const sel = document.getElementById('chSelectA');
-  const opt = sel.options[sel.selectedIndex];
-  document.getElementById('chapter_no_assign').value = opt.getAttribute('data-no') || 0;
+function toggleQuizType() {
+  const t = document.getElementById('quiz_type_sel').value;
+  document.getElementById('mcq-section').style.display = t==='mcq' ? 'block' : 'none';
+  document.getElementById('link-section').style.display = t==='link' ? 'block' : 'none';
 }
-function syncChapterNoQ() {
-  const sel = document.getElementById('chSelectQ');
-  const opt = sel.options[sel.selectedIndex];
-  document.getElementById('chapter_no_quiz').value = opt.getAttribute('data-no') || 0;
-}
-
 let qCount = 1;
 function addQuestion() {
   qCount++;
-  const container = document.getElementById('quiz-questions-container');
-  const block = document.createElement('div');
-  block.className = 'quiz-q-block';
-  block.innerHTML = `
-    <h6>Question ${qCount}</h6>
-    <input type="text" name="question_text" placeholder="Type your question here..." required style="width:100%;padding:9px 12px;border:1.5px solid #dde3ec;border-radius:10px;margin-bottom:10px;font-size:13px;font-family:inherit;">
+  const c = document.getElementById('quiz-questions-container');
+  const d = document.createElement('div');
+  d.className = 'quiz-q-block';
+  d.innerHTML = `<h6>Question ${qCount}</h6>
+    <input type="text" name="question_text" placeholder="Question..." required style="width:100%;padding:9px;border:1.5px solid #dde3ec;border-radius:8px;margin-bottom:8px;font-size:13px;font-family:inherit;">
     <div class="quiz-opts">
-      <input type="text" name="option_a" placeholder="Option A" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-      <input type="text" name="option_b" placeholder="Option B" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-      <input type="text" name="option_c" placeholder="Option C" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
-      <input type="text" name="option_d" placeholder="Option D" required style="width:100%;padding:8px 12px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+      <input type="text" name="option_a" placeholder="Option A" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+      <input type="text" name="option_b" placeholder="Option B" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+      <input type="text" name="option_c" placeholder="Option C" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+      <input type="text" name="option_d" placeholder="Option D" required style="padding:8px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
     </div>
-    <div class="correct-row">
-      <label>✅ Correct Answer:</label>
-      <select name="correct_option" style="width:auto;padding:6px 12px;border:1.5px solid #dde3ec;border-radius:8px;margin-bottom:0;">
-        <option value="A">A</option><option value="B">B</option>
-        <option value="C">C</option><option value="D">D</option>
-      </select>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label style="margin:0;">✅ Correct:</label>
+      <select name="correct_option" style="width:auto;padding:6px;border:1.5px solid #dde3ec;border-radius:8px;margin:0;"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
     </div>
-    <button type="button" onclick="this.closest('.quiz-q-block').remove()" style="margin-top:10px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;">✕ Remove</button>
-  `;
-  container.appendChild(block);
+    <button type="button" onclick="this.closest('.quiz-q-block').remove()" style="margin-top:8px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;">✕ Remove</button>`;
+  c.appendChild(d);
 }
-
-window.addEventListener('DOMContentLoaded', function() {
-  syncChapterNo();
-  syncChapterNoA();
-  syncChapterNoQ();
+function addPair() {
+  const c = document.getElementById('pairs-container');
+  const d = document.createElement('div');
+  d.className = 'pair-row';
+  d.innerHTML = `<input type="text" name="term" placeholder="Term" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+    <input type="text" name="definition" placeholder="Definition" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+    <button type="button" onclick="this.closest('.pair-row').remove()" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;">✕</button>`;
+  c.appendChild(d);
+}
+window.addEventListener('DOMContentLoaded', () => {
+  ['chSelect','chSelectA','chSelectV','chSelectQ','chSelectG'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.dispatchEvent(new Event('change'));
+  });
 });
 </script>
-
 </body>
 </html>
