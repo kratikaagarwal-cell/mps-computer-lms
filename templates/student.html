@@ -119,7 +119,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
 </head>
 <body>
 <div class="header">
-  <div><h1>👨‍🎓 Student Portal</h1><p>MPS International — Computer Science, Class 6</p></div>
+  <div><h1>👨‍🎓 Student Portal</h1><p>MPS International — Computer Science, Class {{ student_class if student_class else "" }}</p></div>
   <div class="header-nav">
     <a href="/">🏠 Home</a>
     {% if student %}<a href="/student_logout">🚪 Logout</a>{% endif %}
