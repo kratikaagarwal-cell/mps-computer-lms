@@ -106,8 +106,16 @@ tbody tr:hover td{background:#f7fffe;}
 
 <div class="main">
   <div class="topbar">
-    <h1>👩‍🏫 Teacher Portal</h1>
-    <span class="tb-badge">{{ teacher_name }}</span>
+    <h1>👩‍🏫 Teacher Portal — Class {{ sel_class }}</h1>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      {% for c in all_classes %}
+      <a href="/teacher?class={{ c }}" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;
+        {% if c == sel_class %}background:#0e9e82;color:white;{% else %}background:rgba(255,255,255,0.6);color:#0f4c81;border:1.5px solid #0f4c81;{% endif %}">
+        Class {{ c }}
+      </a>
+      {% endfor %}
+      <span class="tb-badge">{{ teacher_name }}</span>
+    </div>
   </div>
 
   <div class="stats-row">
@@ -138,6 +146,7 @@ tbody tr:hover td{background:#f7fffe;}
       {% for ch in chapters %}
       {% set cfg = configs.get(ch.no) %}
       <form method="POST" action="/save_chapter_config" style="margin-bottom:8px;">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
         <input type="hidden" name="chapter_no" value="{{ ch.no }}">
         <div class="ch-config-row">
           <div class="ch-config-num">{{ ch.no }}</div>
@@ -169,6 +178,7 @@ tbody tr:hover td{background:#f7fffe;}
       <div class="card">
         <div class="card-title">📤 Upload Material</div>
         <form method="POST" action="/upload_notes" enctype="multipart/form-data">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
           <label>Type</label>
           <div class="file-type-grid">
             <div class="ft-opt"><input type="radio" name="file_type" id="ft-notes" value="notes" checked><label for="ft-notes" class="ft-label"><span class="flt-icon">📎</span>Notes</label></div>
@@ -196,6 +206,7 @@ tbody tr:hover td{background:#f7fffe;}
       <div class="card">
         <div class="card-title">📝 Create Assignment</div>
         <form method="POST" action="/create_assignment" enctype="multipart/form-data">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
           <label>Title</label><input type="text" name="title" required>
           <label>Chapter</label>
           <select name="chapter" id="chSelectA" onchange="syncNo('chSelectA','chapter_no_assign')" required>
@@ -223,6 +234,7 @@ tbody tr:hover td{background:#f7fffe;}
       <div class="card">
         <div class="card-title">🎬 Add Chapter Video</div>
         <form method="POST" action="/add_video">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
           <label>Chapter</label>
           <select name="chapter" id="chSelectV" onchange="syncNo('chSelectV','chapter_no_video')" required>
             <option value="">— Select —</option>
@@ -307,6 +319,7 @@ tbody tr:hover td{background:#f7fffe;}
     <div class="card">
       <div class="card-title">🧠 Create Quiz</div>
       <form method="POST" action="/create_quiz">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
         <div class="grid-2" style="margin-bottom:0;">
           <div>
             <label>Title</label><input type="text" name="title" required>
@@ -380,6 +393,7 @@ tbody tr:hover td{background:#f7fffe;}
     <div class="card">
       <div class="card-title">🎮 Create Drag & Drop Game</div>
       <form method="POST" action="/create_game">
+          <input type="hidden" name="student_class" value="{{ sel_class }}">
         <div class="grid-2" style="margin-bottom:0;">
           <div>
             <label>Game Title</label><input type="text" name="title" required>
@@ -453,7 +467,7 @@ tbody tr:hover td{background:#f7fffe;}
       <div class="card-title">💬 Student Feedbacks</div>
       <div style="margin-bottom:14px;">
         <a href="/view_feedbacks" class="btn btn-blue btn-sm">📊 View All Feedbacks</a>
-        {% for ch in chapters %}<a href="/view_feedbacks?chapter_no={{ ch.no }}" class="btn btn-sm" style="background:#f0f4f8;color:#555;margin:2px;">Ch{{ ch.no }}</a>{% endfor %}
+        {% for ch in chapters %}<a href="/view_feedbacks?class={{ sel_class }}&chapter_no={{ ch.no }}" class="btn btn-sm" style="background:#f0f4f8;color:#555;margin:2px;">Ch{{ ch.no }}</a>{% endfor %}
       </div>
       {% if feedbacks %}
       <table>
