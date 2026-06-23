@@ -208,9 +208,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
               {% endfor %}
              {% if v.chapter_no == ch.no %}
              <br>
-              <a href="{{v.video_url}}" target="_blank">
-                  {{v.video_url}}
-              </a>
+              <a href="{{v.youtube_url}}" target="_blank" class="watch-btn">
                 {% endif %}
               {% endfor %}
 
