@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📊 Quiz Results — {{ quiz.title }}</h3>
+  <p class="text-muted">{{ quiz.chapter }} | {{ quiz.section }} | {{ quiz.created_at }}</p>
+  <p>Total Questions: <strong>{{ quiz.questions|length }}</strong> | Total Attempts: <strong>{{ attempts|length }}</strong></p>
+
+  {% if attempts %}
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Student Name</th>
+        <th>Admission No</th>
+        <th>Score</th>
+        <th>Percentage</th>
+        <th>Attempted At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in attempts %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ a.student.student_name }}</td>
+        <td>{{ a.student.admission_no }}</td>
+        <td><strong>{{ a.score }} / {{ a.total }}</strong></td>
+        <td>
+          {% set pct = (a.score / a.total * 100)|int %}
+          <span class="badge {% if pct >= 80 %}bg-success{% elif pct >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+            {{ pct }}%
+          </span>
+        </td>
+        <td>{{ a.attempted_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info">No students have attempted this quiz yet.</div>
+  {% endif %}
+
+  <a href="/teacher" class="btn btn-secondary">← Back</a>
+</div>
+{% endblock %}
