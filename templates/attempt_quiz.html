@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📝 {{ quiz.title }}</h3>
+  <p class="text-muted">{{ quiz.chapter }} | {{ quiz.description }}</p>
+  <form method="POST" action="/attempt_quiz/{{ quiz.id }}">
+    {% for q in quiz.questions %}
+    <div class="card p-3 mb-3">
+      <p><strong>Q{{ loop.index }}. {{ q.question_text }}</strong></p>
+      <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ q.id }}" value="A" required> <label class="form-check-label">A. {{ q.option_a }}</label></div>
+      <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ q.id }}" value="B"> <label class="form-check-label">B. {{ q.option_b }}</label></div>
+      <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ q.id }}" value="C"> <label class="form-check-label">C. {{ q.option_c }}</label></div>
+      <div class="form-check"><input class="form-check-input" type="radio" name="q_{{ q.id }}" value="D"> <label class="form-check-label">D. {{ q.option_d }}</label></div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Submit Quiz ✅</button>
+    <a href="/student" class="btn btn-outline-secondary ms-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}
