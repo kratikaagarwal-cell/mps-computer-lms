@@ -190,8 +190,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="ch-pct">{{ pct }}% complete</div>
           <div class="ch-tasks">
             {% if cfg and cfg.has_video %}
-            <span class="ch-task {% if prog and prog.video_done %}done{% else %}pending{% endif %}">🎬 {% if prog and prog.video_done %}✓{% else %}○{% endif %} Video</span>
-            {% endif %}
+
+           <span class="ch-task {% if prog and prog.video_done %}done{% else %}pending{% endif %}">
+            🎬 {% if prog and prog.video_done %}✓{% else %}○{% endif %} Video
+              </span>
+
+            {% for v in videos %}
+             {% if v.chapter_no == ch.no %}
+             <br>
+              <a href="{{v.video_url}}" target="_blank" class="watch-btn">
+                ▶ Watch Video
+              </a>
+                {% endif %}
+              {% endfor %}
+
+               {% endif %}
             {% if cfg and cfg.has_notes %}
             <span class="ch-task {% if prog and prog.notes_done %}done{% else %}pending{% endif %}">📎 {% if prog and prog.notes_done %}✓{% else %}○{% endif %} Notes</span>
             {% endif %}
