@@ -10,15 +10,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; min-heig
 
 .hero {
   background: linear-gradient(135deg, #0f4c81 0%, #1565c0 50%, #1abc9c 100%);
-  color: white;
-  padding: 60px 30px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  color: white; padding: 60px 30px; text-align: center; position: relative; overflow: hidden;
 }
 .hero::before {
-  content: '';
-  position: absolute; top: -50%; left: -50%;
+  content: ''; position: absolute; top: -50%; left: -50%;
   width: 200%; height: 200%;
   background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
   animation: pulse 6s ease-in-out infinite;
@@ -26,46 +21,64 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; min-heig
 @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
 .hero-logo { font-size: 64px; margin-bottom: 16px; display: block; }
 .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; }
-.hero p { font-size: 16px; opacity: 0.88; margin-top: 10px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.hero p { font-size: 16px; opacity: 0.88; margin-top: 10px; max-width: 560px; margin-left: auto; margin-right: auto; }
 .hero-badges { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
 .hero-badge { background: rgba(255,255,255,0.18); padding: 6px 18px; border-radius: 30px; font-size: 13px; border: 1px solid rgba(255,255,255,0.25); }
 
-.portals { max-width: 960px; margin: -30px auto 0; padding: 0 20px 50px; }
+/* ── PORTALS (Admin / Teacher / Student) ── */
+.portals { max-width: 960px; margin: -30px auto 0; padding: 0 20px 40px; }
 .portal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-
 .portal-card {
-  background: white;
-  border-radius: 20px;
-  padding: 36px 28px;
-  text-align: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.10);
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border-top: 5px solid;
+  background: white; border-radius: 20px; padding: 36px 28px; text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.10); text-decoration: none; color: inherit;
+  display: block; transition: transform 0.2s, box-shadow 0.2s; border-top: 5px solid;
 }
 .portal-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.15); }
-.portal-card.blue { border-top-color: #0f4c81; }
-.portal-card.teal { border-top-color: #1abc9c; }
+.portal-card.blue   { border-top-color: #0f4c81; }
+.portal-card.teal   { border-top-color: #1abc9c; }
 .portal-card.orange { border-top-color: #f59e0b; }
-
-.pc-icon { font-size: 54px; margin-bottom: 16px; display: block; }
+.pc-icon  { font-size: 54px; margin-bottom: 16px; display: block; }
 .pc-title { font-size: 20px; font-weight: 700; color: #0f4c81; margin-bottom: 8px; }
-.pc-desc { font-size: 13px; color: #777; line-height: 1.6; margin-bottom: 20px; }
-.pc-btn {
-  display: inline-block;
-  padding: 11px 28px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  text-decoration: none;
-}
-.btn-blue { background: linear-gradient(135deg, #0f4c81, #1565c0); }
-.btn-teal { background: linear-gradient(135deg, #1abc9c, #0e9e82); }
+.pc-desc  { font-size: 13px; color: #777; line-height: 1.6; margin-bottom: 20px; }
+.pc-btn { display: inline-block; padding: 11px 28px; border-radius: 25px; font-size: 14px; font-weight: 600; color: white; text-decoration: none; }
+.btn-blue   { background: linear-gradient(135deg, #0f4c81, #1565c0); }
+.btn-teal   { background: linear-gradient(135deg, #1abc9c, #0e9e82); }
 .btn-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
 
+/* ── CLASS SECTION ── */
+.classes-section { max-width: 960px; margin: 0 auto 50px; padding: 0 20px; }
+.section-heading {
+  text-align: center; margin-bottom: 24px;
+}
+.section-heading h2 { font-size: 22px; font-weight: 800; color: #0f4c81; }
+.section-heading p  { font-size: 13px; color: #888; margin-top: 6px; }
+
+.class-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.class-card {
+  background: white; border-radius: 18px; padding: 28px 20px; text-align: center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08); text-decoration: none; color: inherit;
+  display: block; transition: transform 0.2s, box-shadow 0.2s; border-top: 5px solid;
+  position: relative; overflow: hidden;
+}
+.class-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,0.14); }
+.class-card.c6  { border-top-color: #0f4c81; }
+.class-card.c7  { border-top-color: #8b5cf6; }
+.class-card.c8  { border-top-color: #1abc9c; }
+.class-card.c9  { border-top-color: #f59e0b; }
+.class-num { font-size: 42px; font-weight: 900; margin-bottom: 4px; }
+.class-card.c6 .class-num { color: #0f4c81; }
+.class-card.c7 .class-num { color: #8b5cf6; }
+.class-card.c8 .class-num { color: #1abc9c; }
+.class-card.c9 .class-num { color: #f59e0b; }
+.class-label { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 12px; }
+.class-chapters { font-size: 12px; color: #888; margin-bottom: 6px; }
+.class-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; margin-top: 8px; }
+.class-card.c6 .class-badge { background: #0f4c81; }
+.class-card.c7 .class-badge { background: #8b5cf6; }
+.class-card.c8 .class-badge { background: #1abc9c; }
+.class-card.c9 .class-badge { background: #f59e0b; }
+
+/* ── FEATURES ── */
 .features { background: white; padding: 50px 30px; }
 .features h2 { text-align: center; font-size: 24px; color: #0f4c81; margin-bottom: 32px; }
 .feat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 900px; margin: 0 auto; }
@@ -76,11 +89,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; min-heig
 
 footer { text-align: center; padding: 22px; background: #0f4c81; color: rgba(255,255,255,0.7); font-size: 13px; }
 
-@media(max-width:700px) {
+@media(max-width:800px) {
   .portal-grid { grid-template-columns: 1fr; }
-  .feat-grid { grid-template-columns: repeat(2,1fr); }
-  .hero h1 { font-size: 26px; }
+  .class-grid  { grid-template-columns: repeat(2,1fr); }
+  .feat-grid   { grid-template-columns: repeat(2,1fr); }
+  .hero h1     { font-size: 26px; }
 }
+@media(max-width:480px) { .class-grid { grid-template-columns: repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -88,37 +103,77 @@ footer { text-align: center; padding: 22px; background: #0f4c81; color: rgba(255
 <div class="hero">
   <span class="hero-logo">🖥️</span>
   <h1>MPS Computer LMS</h1>
-  <p>Your complete Learning Management System for Computer Science — Class 6</p>
+  <p>Your complete Learning Management System for Computer Science — Classes 6, 7, 8 &amp; 9</p>
   <div class="hero-badges">
-    <span class="hero-badge">📚 9 Chapters</span>
-    <span class="hero-badge">7 Sections</span>
-    <span class="hero-badge">📝 Assignments & Quizzes</span>
+    <span class="hero-badge">📚 Classes 6–9</span>
+    <span class="hero-badge">7 Sections per Class</span>
+    <span class="hero-badge">📝 Assignments &amp; Quizzes</span>
     <span class="hero-badge">📊 Progress Tracking</span>
   </div>
 </div>
 
+<!-- Portals -->
 <div class="portals">
   <div class="portal-grid">
-
     <a href="/login" class="portal-card blue">
       <span class="pc-icon">👨‍💼</span>
       <div class="pc-title">Admin Portal</div>
-      <div class="pc-desc">Manage students, upload rosters from Excel, monitor all activity across sections.</div>
+      <div class="pc-desc">Manage students across all classes, upload rosters from Excel, monitor activity.</div>
       <span class="pc-btn btn-blue">Go to Admin →</span>
     </a>
-
     <a href="/teacher" class="portal-card teal">
       <span class="pc-icon">👩‍🏫</span>
       <div class="pc-title">Teacher Portal</div>
-      <div class="pc-desc">Upload notes, books, quizzes & tests per chapter. Create and manage assignments.</div>
+      <div class="pc-desc">Upload notes, books, quizzes &amp; games per chapter and class. Manage assignments.</div>
       <span class="pc-btn btn-teal">Go to Teacher →</span>
     </a>
-
     <a href="/student" class="portal-card orange">
       <span class="pc-icon">👨‍🎓</span>
       <div class="pc-title">Student Portal</div>
-      <div class="pc-desc">Access study materials, download resources, track chapter progress, submit assignments.</div>
+      <div class="pc-desc">Log in with your Admission Number — your class is loaded automatically.</div>
       <span class="pc-btn btn-orange">Go to Student →</span>
+    </a>
+  </div>
+</div>
+
+<!-- Classes -->
+<div class="classes-section">
+  <div class="section-heading">
+    <h2>📚 Available Classes</h2>
+    <p>Students are automatically directed to their class after login — no manual selection needed.</p>
+  </div>
+  <div class="class-grid">
+
+    <a href="/student" class="class-card c6">
+      <div class="class-num">6</div>
+      <div class="class-label">Class Six</div>
+      <div class="class-chapters">9 Chapters · 7 Sections</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Internet Services, Excel, GIMP, Python, Data Science…</div>
+      <span class="class-badge">Login to Access</span>
+    </a>
+
+    <a href="/student" class="class-card c7">
+      <div class="class-num">7</div>
+      <div class="class-label">Class Seven</div>
+      <div class="class-chapters">9 Chapters · 7 Sections</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Excel, GIMP, HTML/CSS, Python, App Dev, AI…</div>
+      <span class="class-badge">Login to Access</span>
+    </a>
+
+    <a href="/student" class="class-card c8">
+      <div class="class-num">8</div>
+      <div class="class-label">Class Eight</div>
+      <div class="class-chapters">9 Chapters · 7 Sections</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Video Editing, DBMS, SQL, HTML, Python, NLP…</div>
+      <span class="class-badge">Login to Access</span>
+    </a>
+
+    <a href="/student" class="class-card c9">
+      <div class="class-num">9</div>
+      <div class="class-label">Class Nine</div>
+      <div class="class-chapters">10 Chapters · 7 Sections</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">ICT Skills, IT-ITeS Industry, Data Entry, Spreadsheet…</div>
+      <span class="class-badge">Login to Access</span>
     </a>
 
   </div>
@@ -129,16 +184,16 @@ footer { text-align: center; padding: 22px; background: #0f4c81; color: rgba(255
   <div class="feat-grid">
     <div class="feat-item"><span class="fi">📎</span><strong>Study Notes</strong><span>Chapter-wise PDF/PPT notes</span></div>
     <div class="feat-item"><span class="fi">📗</span><strong>Book PDFs</strong><span>Digital textbooks per chapter</span></div>
-    <div class="feat-item"><span class="fi">📋</span><strong>Quizzes & Tests</strong><span>Practice papers & test sheets</span></div>
-    <div class="feat-item"><span class="fi">📝</span><strong>Assignments</strong><span>Create & track submissions</span></div>
+    <div class="feat-item"><span class="fi">📋</span><strong>Quizzes &amp; Tests</strong><span>Practice papers &amp; test sheets</span></div>
+    <div class="feat-item"><span class="fi">📝</span><strong>Assignments</strong><span>Create &amp; track submissions</span></div>
     <div class="feat-item"><span class="fi">📊</span><strong>Progress Tracker</strong><span>Mark chapters as done</span></div>
-    <div class="feat-item"><span class="fi">👥</span><strong>7 Sections</strong><span>6A through 6G supported</span></div>
+    <div class="feat-item"><span class="fi">👥</span><strong>4 Classes</strong><span>Class 6, 7, 8 &amp; 9 supported</span></div>
     <div class="feat-item"><span class="fi">📤</span><strong>Bulk Upload</strong><span>Import students via Excel</span></div>
-    <div class="feat-item"><span class="fi">🔒</span><strong>Secure Login</strong><span>Separate portals per role</span></div>
+    <div class="feat-item"><span class="fi">🔒</span><strong>Class Isolation</strong><span>Students see only their class</span></div>
   </div>
 </div>
 
-<footer>© 2025 MPS International School — Computer Department | Class 6 LMS</footer>
+<footer>© 2025 MPS International School — Computer Department | Classes 6–9 LMS</footer>
 
 </body>
 </html>
