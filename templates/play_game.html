@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🎮 {{ game.title }}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f4c81, #8b5cf6); min-height: 100vh; padding: 20px; }
+.game-wrap { max-width: 800px; margin: 0 auto; }
+.game-header { text-align: center; color: white; margin-bottom: 20px; }
+.game-header h2 { font-size: 24px; font-weight: 800; }
+.game-header p { opacity: 0.8; font-size: 13px; margin-top: 4px; }
+.hud { display: flex; justify-content: center; gap: 24px; margin-bottom: 18px; }
+.hud-item { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 20px; text-align: center; color: white; }
+.hud-num { font-size: 26px; font-weight: 800; }
+.hud-label { font-size: 11px; opacity: 0.8; }
+.game-board { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.col-label { text-align: center; font-weight: 700; color: white; margin-bottom: 8px; font-size: 14px; }
+.card-list { display: flex; flex-direction: column; gap: 8px; }
+.game-card { padding: 14px 16px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.2s; border: 3px solid transparent; user-select: none; }
+.term-card { background: #dbeafe; color: #1e40af; }
+.def-card { background: #ede9fe; color: #5b21b6; }
+.game-card.selected { border-color: #f59e0b; transform: scale(1.03); box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
+.game-card.matched { background: #d1fae5 !important; color: #065f46 !important; border-color: #10b981 !important; cursor: default; opacity: 0.7; }
+.game-card.wrong { border-color: #ef4444 !important; animation: shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.result-box { background: white; border-radius: 20px; padding: 30px; text-align: center; display: none; }
+.result-box h3 { font-size: 28px; font-weight: 800; color: #0f4c81; margin-bottom: 8px; }
+.result-score { font-size: 48px; font-weight: 900; color: #8b5cf6; }
+.leaderboard { margin-top: 20px; text-align: left; }
+.lb-title { font-size: 14px; font-weight: 700; color: #555; margin-bottom: 10px; }
+.lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; margin-bottom: 6px; background: #f8fafc; }
+.lb-rank { width: 26px; height: 26px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.lb-rank.gold { background: #fbbf24; color: white; }
+.lb-rank.silver { background: #94a3b8; color: white; }
+.lb-rank.bronze { background: #d97706; color: white; }
+.lb-name { flex: 1; font-size: 13px; font-weight: 600; }
+.lb-score { font-size: 13px; color: #8b5cf6; font-weight: 700; }
+.lb-time { font-size: 11px; color: #aaa; }
+.btn { display: inline-block; padding: 12px 28px; border-radius: 22px; font-size: 14px; font-weight: 700; color: white; border: none; cursor: pointer; text-decoration: none; margin: 6px; }
+.btn-green { background: linear-gradient(135deg, #10b981, #1abc9c); }
+.btn-blue { background: linear-gradient(135deg, #0f4c81, #1565c0); }
+</style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="game-header">
+    <h2>🎮 {{ game.title }}</h2>
+    <p>{{ game.chapter }} — Match the terms with their definitions!</p>
+  </div>
+
+  <div class="hud">
+    <div class="hud-item"><div class="hud-num" id="score-display">0</div><div class="hud-label">Score</div></div>
+    <div class="hud-item"><div class="hud-num" id="timer-display">0</div><div class="hud-label">Seconds</div></div>
+    <div class="hud-item"><div class="hud-num" id="matched-display">0/{{ game.pairs|length }}</div><div class="hud-label">Matched</div></div>
+  </div>
+
+  <div class="game-board" id="game-board">
+    <div>
+      <div class="col-label">📌 Terms</div>
+      <div class="card-list" id="terms-col"></div>
+    </div>
+    <div>
+      <div class="col-label">📖 Definitions</div>
+      <div class="card-list" id="defs-col"></div>
+    </div>
+  </div>
+
+  <div class="result-box" id="result-box">
+    <h3>🎉 Well Done!</h3>
+    <div class="result-score" id="final-score">0</div>
+    <p style="color:#888;font-size:13px;margin-top:6px;">points in <span id="final-time">0</span> seconds</p>
+    <div class="leaderboard" id="leaderboard-wrap"></div>
+    <div style="margin-top:20px;">
+      <a href="/student" class="btn btn-blue">← Back to Portal</a>
+      <button onclick="restartGame()" class="btn btn-green">🔄 Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pairs = {{ game.pairs | tojson }};
+const gameId = {{ game.id }};
+let selectedTerm = null, selectedDef = null;
+let score = 0, matched = 0, timerSecs = 0, timerInterval = null;
+let started = false;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function buildBoard() {
+  const termsCol = document.getElementById('terms-col');
+  const defsCol = document.getElementById('defs-col');
+  termsCol.innerHTML = ''; defsCol.innerHTML = '';
+  const shuffledTerms = shuffle(pairs);
+  const shuffledDefs = shuffle(pairs);
+  shuffledTerms.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'game-card term-card';
+    el.textContent = p.term;
+    el.dataset.id = p.id;
+    el.dataset.type = 'term';
+    el.onclick = () => selectCard(el);
+    termsCol.appendChild(el);
+  });
+  shuffledDefs.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'game-card def-card';
+    el.textContent = p.definition;
+    el.dataset.id = p.id;
+    el.dataset.type = 'def';
+    el.onclick = () => selectCard(el);
+    defsCol.appendChild(el);
+  });
+}
+
+function startTimer() {
+  if (started) return;
+  started = true;
+  timerInterval = setInterval(() => {
+    timerSecs++;
+    document.getElementById('timer-display').textContent = timerSecs;
+  }, 1000);
+}
+
+function selectCard(el) {
+  if (el.classList.contains('matched')) return;
+  startTimer();
+  if (el.dataset.type === 'term') {
+    if (selectedTerm) selectedTerm.classList.remove('selected');
+    selectedTerm = el;
+    el.classList.add('selected');
+  } else {
+    if (selectedDef) selectedDef.classList.remove('selected');
+    selectedDef = el;
+    el.classList.add('selected');
+  }
+  if (selectedTerm && selectedDef) {
+    if (selectedTerm.dataset.id === selectedDef.dataset.id) {
+      // correct match
+      matched++;
+      score += Math.max(10, 50 - timerSecs);
+      selectedTerm.classList.remove('selected'); selectedTerm.classList.add('matched');
+      selectedDef.classList.remove('selected'); selectedDef.classList.add('matched');
+      selectedTerm = null; selectedDef = null;
+      document.getElementById('score-display').textContent = score;
+      document.getElementById('matched-display').textContent = matched + '/' + pairs.length;
+      if (matched === pairs.length) endGame();
+    } else {
+      // wrong
+      selectedTerm.classList.add('wrong'); selectedDef.classList.add('wrong');
+      score = Math.max(0, score - 5);
+      document.getElementById('score-display').textContent = score;
+      setTimeout(() => {
+        if (selectedTerm) { selectedTerm.classList.remove('selected','wrong'); selectedTerm = null; }
+        if (selectedDef) { selectedDef.classList.remove('selected','wrong'); selectedDef = null; }
+      }, 600);
+    }
+  }
+}
+
+async function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById('game-board').style.display = 'none';
+  document.getElementById('result-box').style.display = 'block';
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-time').textContent = timerSecs;
+  const res = await fetch('/save_game_score', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({game_id: gameId, score: score, time_seconds: timerSecs})
+  });
+  const data = await res.json();
+  if (data.leaderboard) {
+    let html = '<div class="lb-title">🏆 Leaderboard</div>';
+    data.leaderboard.forEach((row, i) => {
+      const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      html += `<div class="lb-row"><div class="lb-rank ${rankClass}">${i+1}</div><div class="lb-name">${row.name}</div><div class="lb-score">${row.score} pts</div><div class="lb-time">${row.time}s</div></div>`;
+    });
+    document.getElementById('leaderboard-wrap').innerHTML = html;
+  }
+}
+
+function restartGame() {
+  score = 0; matched = 0; timerSecs = 0; started = false;
+  clearInterval(timerInterval);
+  selectedTerm = null; selectedDef = null;
+  document.getElementById('score-display').textContent = 0;
+  document.getElementById('timer-display').textContent = 0;
+  document.getElementById('matched-display').textContent = '0/' + pairs.length;
+  document.getElementById('game-board').style.display = 'grid';
+  document.getElementById('result-box').style.display = 'none';
+  buildBoard();
+}
+
+buildBoard();
+</script>
+</body>
+</html>
