@@ -7,16 +7,13 @@ import os
 app = Flask(__name__)
 app.secret_key = "mps_lms_secret_2025"
 
-# ─────────────────────────────────────────────
-# DATABASE — Supabase PostgreSQL (persistent, free, never expires)
-# ─────────────────────────────────────────────
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL",
     "postgresql://postgres.fxyyepynocnjegevvsbq:Kratika%4012345@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
 )
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 app.config["UPLOAD_FOLDER"] = "uploads"
-app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
 
 db = SQLAlchemy(app)
 
@@ -89,6 +86,41 @@ class AssignmentSubmission(db.Model):
     status = db.Column(db.String(20), default="pending")
     submitted_at = db.Column(db.String(30), default="")
     remarks = db.Column(db.String(300), default="")
+
+
+# ── QUIZ MODELS ──────────────────────────────
+
+class Quiz(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    chapter = db.Column(db.String(100))
+    chapter_no = db.Column(db.Integer, default=0)
+    section = db.Column(db.String(20))
+    description = db.Column(db.String(300), default="")
+    created_at = db.Column(db.String(30), default="")
+    questions = db.relationship("QuizQuestion", backref="quiz", cascade="all, delete-orphan")
+
+
+class QuizQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quiz_id = db.Column(db.Integer, db.ForeignKey("quiz.id"))
+    question_text = db.Column(db.Text)
+    option_a = db.Column(db.String(300))
+    option_b = db.Column(db.String(300))
+    option_c = db.Column(db.String(300))
+    option_d = db.Column(db.String(300))
+    correct_option = db.Column(db.String(1))  # A / B / C / D
+
+
+class QuizAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
+    quiz_id = db.Column(db.Integer, db.ForeignKey("quiz.id"))
+    score = db.Column(db.Integer, default=0)
+    total = db.Column(db.Integer, default=0)
+    attempted_at = db.Column(db.String(30), default="")
+    student = db.relationship("Student", backref="quiz_attempts")
+    quiz = db.relationship("Quiz", backref="attempts")
 
 
 # ─────────────────────────────────────────────
@@ -183,7 +215,7 @@ def admin():
     total_students = Student.query.count()
     total_notes = Note.query.filter_by(file_type="notes").count()
     total_books = Note.query.filter_by(file_type="book").count()
-    total_quizzes = Note.query.filter(Note.file_type.in_(["quiz", "test"])).count()
+    total_quizzes = Quiz.query.count()
     total_assignments = Assignment.query.count()
     recent_notes = Note.query.order_by(Note.id.desc()).limit(5).all()
     recent_assignments = Assignment.query.order_by(Assignment.id.desc()).limit(5).all()
@@ -275,15 +307,15 @@ def teacher():
         return redirect("/teacher_login")
     notes = Note.query.filter_by(file_type="notes").order_by(Note.id.desc()).all()
     books = Note.query.filter_by(file_type="book").order_by(Note.id.desc()).all()
-    quizzes = Note.query.filter(Note.file_type.in_(["quiz", "test"])).order_by(Note.id.desc()).all()
     assignments = Assignment.query.order_by(Assignment.id.desc()).all()
+    quizzes = Quiz.query.order_by(Quiz.id.desc()).all()
     total_students = Student.query.count()
     teacher_name = session.get("teacher_name", "Teacher")
     return render_template("teacher.html",
         notes=notes,
         books=books,
-        quizzes=quizzes,
         assignments=assignments,
+        quizzes=quizzes,
         chapters=CHAPTERS,
         sections=SECTIONS,
         total_students=total_students,
@@ -353,14 +385,9 @@ def create_assignment():
         filename = safe_name
 
     assignment = Assignment(
-        title=title,
-        chapter=chapter,
-        chapter_no=chapter_no,
-        section=section,
-        description=description,
-        due_date=due_date,
-        filename=filename,
-        created_at=now_str()
+        title=title, chapter=chapter, chapter_no=chapter_no,
+        section=section, description=description, due_date=due_date,
+        filename=filename, created_at=now_str()
     )
     db.session.add(assignment)
     db.session.commit()
@@ -377,6 +404,61 @@ def delete_assignment(id):
     return redirect("/teacher")
 
 # ─────────────────────────────────────────────
+# QUIZ — TEACHER
+# ─────────────────────────────────────────────
+
+@app.route("/create_quiz", methods=["GET", "POST"])
+def create_quiz():
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+    if request.method == "POST":
+        title = request.form["title"]
+        chapter = request.form["chapter"]
+        chapter_no = int(request.form.get("chapter_no", 0))
+        section = request.form["section"]
+        description = request.form.get("description", "")
+
+        quiz = Quiz(title=title, chapter=chapter, chapter_no=chapter_no,
+                    section=section, description=description, created_at=now_str())
+        db.session.add(quiz)
+        db.session.flush()  # get quiz.id
+
+        questions = request.form.getlist("question_text")
+        for i, qtext in enumerate(questions):
+            if qtext.strip():
+                q = QuizQuestion(
+                    quiz_id=quiz.id,
+                    question_text=qtext.strip(),
+                    option_a=request.form.getlist("option_a")[i],
+                    option_b=request.form.getlist("option_b")[i],
+                    option_c=request.form.getlist("option_c")[i],
+                    option_d=request.form.getlist("option_d")[i],
+                    correct_option=request.form.getlist("correct_option")[i],
+                )
+                db.session.add(q)
+        db.session.commit()
+        return redirect("/teacher")
+    return render_template("create_quiz.html", chapters=CHAPTERS, sections=SECTIONS)
+
+@app.route("/delete_quiz/<int:id>")
+def delete_quiz(id):
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+    quiz = db.session.get(Quiz, id)
+    if quiz:
+        db.session.delete(quiz)
+        db.session.commit()
+    return redirect("/teacher")
+
+@app.route("/quiz_results/<int:quiz_id>")
+def quiz_results(quiz_id):
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+    quiz = db.session.get(Quiz, quiz_id)
+    attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).order_by(QuizAttempt.score.desc()).all()
+    return render_template("quiz_results.html", quiz=quiz, attempts=attempts)
+
+# ─────────────────────────────────────────────
 # STUDENT PORTAL
 # ─────────────────────────────────────────────
 
@@ -388,7 +470,8 @@ def student_portal():
     quizzes = []
     assignments = []
     progress_map = {}
-    submitted_ids = set()
+    submitted_ids = {}
+    attempted_quiz_ids = {}
     chapter_stats = {}
 
     if "student_id" in session:
@@ -404,10 +487,10 @@ def student_portal():
 
             notes = get_materials("notes")
             books = get_materials("book")
-            quizzes = Note.query.filter(
-                Note.file_type.in_(["quiz", "test"]),
-                (Note.section == sec) | (Note.section == "All Sections")
-            ).order_by(Note.chapter_no, Note.id).all()
+
+            quizzes = Quiz.query.filter(
+                (Quiz.section == sec) | (Quiz.section == "All Sections")
+            ).order_by(Quiz.chapter_no, Quiz.id).all()
 
             assignments = Assignment.query.filter(
                 (Assignment.section == sec) | (Assignment.section == "") | (Assignment.section == "All Sections")
@@ -418,6 +501,9 @@ def student_portal():
 
             subs = AssignmentSubmission.query.filter_by(student_id=student_data.id).all()
             submitted_ids = {s.assignment_id: s.status for s in subs}
+
+            quiz_attempts = QuizAttempt.query.filter_by(student_id=student_data.id).all()
+            attempted_quiz_ids = {a.quiz_id: a for a in quiz_attempts}
 
             for ch in CHAPTERS:
                 cno = ch["no"]
@@ -441,6 +527,7 @@ def student_portal():
         chapters=CHAPTERS,
         progress_map=progress_map,
         submitted_ids=submitted_ids,
+        attempted_quiz_ids=attempted_quiz_ids,
         chapter_stats=chapter_stats,
         completed=completed,
         in_progress=in_progress,
@@ -458,7 +545,7 @@ def student_login():
     return render_template("student.html",
         student=None, error="Admission No not found. Please contact your teacher.",
         chapters=CHAPTERS, notes=[], books=[], quizzes=[], assignments=[],
-        progress_map={}, submitted_ids={}, chapter_stats={},
+        progress_map={}, submitted_ids={}, attempted_quiz_ids={}, chapter_stats={},
         completed=0, in_progress=0, total_chapters=len(CHAPTERS)
     )
 
@@ -492,14 +579,48 @@ def submit_assignment(assignment_id):
     existing = AssignmentSubmission.query.filter_by(student_id=student_id, assignment_id=assignment_id).first()
     if not existing:
         sub = AssignmentSubmission(
-            student_id=student_id,
-            assignment_id=assignment_id,
-            status="submitted",
-            submitted_at=now_str()
+            student_id=student_id, assignment_id=assignment_id,
+            status="submitted", submitted_at=now_str()
         )
         db.session.add(sub)
         db.session.commit()
     return redirect("/student")
+
+# ─────────────────────────────────────────────
+# QUIZ — STUDENT ATTEMPT
+# ─────────────────────────────────────────────
+
+@app.route("/attempt_quiz/<int:quiz_id>", methods=["GET", "POST"])
+def attempt_quiz(quiz_id):
+    if "student_id" not in session:
+        return redirect("/student")
+    student_id = session["student_id"]
+
+    # already attempted?
+    existing = QuizAttempt.query.filter_by(student_id=student_id, quiz_id=quiz_id).first()
+    if existing:
+        return redirect("/student")
+
+    quiz = db.session.get(Quiz, quiz_id)
+    if not quiz:
+        return redirect("/student")
+
+    if request.method == "POST":
+        score = 0
+        total = len(quiz.questions)
+        for q in quiz.questions:
+            chosen = request.form.get(f"q_{q.id}", "")
+            if chosen.upper() == q.correct_option.upper():
+                score += 1
+        attempt = QuizAttempt(
+            student_id=student_id, quiz_id=quiz_id,
+            score=score, total=total, attempted_at=now_str()
+        )
+        db.session.add(attempt)
+        db.session.commit()
+        return render_template("quiz_score.html", score=score, total=total, quiz=quiz)
+
+    return render_template("attempt_quiz.html", quiz=quiz)
 
 # ─────────────────────────────────────────────
 # FILE SERVE
@@ -510,7 +631,7 @@ def serve_upload(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 # ─────────────────────────────────────────────
-# DB INIT — runs on every startup
+# DB INIT
 # ─────────────────────────────────────────────
 
 with app.app_context():
