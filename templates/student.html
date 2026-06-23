@@ -198,8 +198,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             {% for v in videos %}
              {% if v.chapter_no == ch.no %}
              <br>
-              <a href="{{v.video_url}}" target="_blank" class="watch-btn">
-                ▶ Watch Video
+              <a href="{{v.video_url}}" target="_blank">
+                  {{v.video_url}}
               </a>
                 {% endif %}
               {% endfor %}
