@@ -174,7 +174,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             {% if cfg and cfg.has_video %}
               {% set ch_videos = videos|selectattr('chapter_no','eq',ch.no)|list %}
               {% if ch_videos %}
-                <a href="{{ ch_videos[0].youtube_url }}" target="_blank" class="video-link">🎬 Watch Video</a>
+                <a href="/mark_video/{{ ch.no }}" class="video-link" target="_blank" onclick="setTimeout(()=>location.reload(),1500)">🎬 Watch Video</a>
               {% endif %}
               <span class="ch-task {% if prog and prog.video_done %}done{% else %}pending{% endif %}">🎬 {% if prog and prog.video_done %}✓{% else %}○{% endif %} Video</span>
             {% endif %}
@@ -218,7 +218,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
               <div class="mat-sub">{{ n.description or 'Study notes' }} · Sec {{ n.section }}</div>
             </div>
             <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
-              <a href="/uploads/{{ n.filename }}" class="btn btn-blue" target="_blank">⬇ Download</a>
+              <!-- FIX #6: Read only, no download -->
+              <a href="/uploads/{{ n.filename }}" class="btn btn-blue" target="_blank">👁 Read</a>
               {% set prog = progress_map.get(n.chapter_no) %}
               {% if prog and prog.notes_done %}<span class="badge bg-green">✓ Read</span>{% endif %}
             </div>
@@ -230,6 +231,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           {% if ch_notes %}
           {% set prog = progress_map.get(ch.no) %}
           {% if not (prog and prog.notes_done) %}
+          <!-- FIX #7: POST method fixes "method not allowed" -->
           <form method="POST" action="/mark_notes/{{ ch.no }}" style="display:inline;">
             <button type="submit" class="btn btn-green" style="font-size:11px;padding:5px 12px;margin:2px;">✅ Mark Ch{{ ch.no }} Notes Read</button>
           </form>
@@ -247,17 +249,24 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
       <div class="card-title">📗 Book PDFs</div>
       {% if books %}
         {% for b in books %}
-        <div class="mat-item book-item">
+          <div class="mat-item book-item">
           <div class="mat-icon">📗</div>
           <div class="mat-info">
-            <div class="mat-name">{{ b.original_name or b.filename }}</div>
+            <div class="mat-name">{{ b.original_name or b.filename or 'Book Resource' }}</div>
             <div class="mat-sub">{{ b.chapter }} · Sec {{ b.section }}</div>
           </div>
           <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
-            <a href="/uploads/{{ b.filename }}" class="btn btn-teal" target="_blank">⬇ Open Book</a>
+            <!-- FIX #3: open external URL if set, otherwise serve file inline; FIX #6: read-only -->
+            {% if b.external_url %}
+              <a href="{{ b.external_url }}" class="btn btn-teal" target="_blank">📖 Open Book</a>
+            {% elif b.filename %}
+              <a href="/uploads/{{ b.filename }}" class="btn btn-teal" target="_blank">📖 Open Book</a>
+            {% endif %}
             {% set prog = progress_map.get(b.chapter_no) %}
             {% if not (prog and prog.book_done) %}
-            <a href="/mark_book/{{ b.chapter_no }}" class="btn btn-green" style="font-size:11px;padding:5px 10px;">✅ Mark Read</a>
+            <form method="POST" action="/mark_book/{{ b.chapter_no }}" style="display:inline;">
+              <button type="submit" class="btn btn-green" style="font-size:11px;padding:5px 10px;">✅ Mark Read</button>
+            </form>
             {% else %}<span class="badge bg-green">✓ Read</span>{% endif %}
           </div>
         </div>
@@ -341,34 +350,44 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
     </div>
   </div>
 
-  <!-- FEEDBACK TAB -->
+  <!-- QUERY TAB (was Feedback) -->
   <div id="tab-feedback" class="tab-content">
     <div class="card">
-      <div class="card-title">💬 Chapter Feedback</div>
-      <p style="font-size:13px;color:#888;margin-bottom:16px;">Submit feedback after completing a chapter. This is required for 100% chapter completion.</p>
+      <div class="card-title">💬 Chapter Queries</div>
+      <p style="font-size:13px;color:#888;margin-bottom:16px;">Have a doubt or question about a chapter? Ask your teacher here. This does <strong>not</strong> affect your chapter progress.</p>
+
+      <!-- Show previous queries and teacher replies -->
+      {% if student_queries %}
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:#0f4c81;margin-bottom:10px;">📬 Your Previous Queries</div>
+        {% for q in student_queries %}
+        <div style="background:#f8fafc;border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #0e9e82;">
+          <div style="font-size:12px;font-weight:700;color:#0f4c81;">Ch {{ q.chapter_no }} — {{ q.submitted_at }}</div>
+          <div style="font-size:13px;color:#444;margin:6px 0;">{{ q.comment }}</div>
+          {% if q.teacher_reply %}
+          <div style="background:#e0fdf4;border-radius:8px;padding:8px 12px;font-size:12px;color:#065f46;">
+            <strong>👩‍🏫 Teacher:</strong> {{ q.teacher_reply }}
+            <span style="color:#aaa;font-size:10px;margin-left:8px;">{{ q.replied_at }}</span>
+          </div>
+          {% else %}
+          <div style="font-size:11px;color:#aaa;margin-top:4px;">⏳ Awaiting teacher reply...</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Submit new query form -->
       {% for ch in chapters %}
       {% set cfg = chapter_configs.get(ch.no) %}
-      {% if cfg and cfg.is_active and cfg.has_feedback %}
-      {% set already_done = ch.no in feedbacks_done %}
+      {% if cfg and cfg.is_active %}
       <div class="feedback-form">
         <div style="font-weight:700;color:#0f4c81;margin-bottom:6px;">Ch {{ ch.no }} — {{ ch.name }}</div>
-        {% if already_done %}
-          <span class="badge bg-green">✓ Feedback Submitted</span>
-        {% else %}
-        <form method="POST" action="/submit_feedback">
+        <form method="POST" action="/submit_query">
           <input type="hidden" name="chapter_no" value="{{ ch.no }}">
-          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Rate this chapter:</div>
-          <div style="display:flex;gap:6px;margin-bottom:10px;">
-            {% for i in range(1,6) %}
-            <label style="cursor:pointer;font-size:24px;">
-              <input type="radio" name="rating" value="{{ i }}" {% if i==5 %}checked{% endif %} style="display:none;">⭐
-            </label>
-            {% endfor %}
-          </div>
-          <textarea name="comment" placeholder="What did you like? What was difficult? Any suggestions..." style="width:100%;padding:10px;border:1.5px solid #dde3ec;border-radius:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;margin-bottom:10px;"></textarea>
-          <button type="submit" class="btn btn-teal">💬 Submit Feedback</button>
+          <textarea name="comment" placeholder="Type your doubt or question for this chapter..." style="width:100%;padding:10px;border:1.5px solid #dde3ec;border-radius:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:10px;"></textarea>
+          <button type="submit" class="btn btn-teal">💬 Submit Query</button>
         </form>
-        {% endif %}
       </div>
       {% endif %}
       {% endfor %}
