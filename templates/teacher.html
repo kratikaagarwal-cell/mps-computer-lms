@@ -176,13 +176,13 @@ tbody tr:hover td{background:#f7fffe;}
     <div class="grid-2">
       <div class="card">
         <div class="card-title">📤 Upload Material</div>
-        <form method="POST" action="/upload_notes" enctype="multipart/form-data">
+        <form method="POST" action="/upload_notes" enctype="multipart/form-data" id="uploadForm">
           <input type="hidden" name="student_class" value="{{ sel_class }}">
           <label>Type</label>
           <div class="file-type-grid">
-            <div class="ft-opt"><input type="radio" name="file_type" id="ft-notes" value="notes" checked><label for="ft-notes" class="ft-label"><span class="flt-icon">📎</span>Notes</label></div>
-            <div class="ft-opt"><input type="radio" name="file_type" id="ft-book" value="book"><label for="ft-book" class="ft-label"><span class="flt-icon">📗</span>Book PDF</label></div>
-            <div class="ft-opt"><input type="radio" name="file_type" id="ft-test" value="test"><label for="ft-test" class="ft-label"><span class="flt-icon">📄</span>Test Paper</label></div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-notes" value="notes" checked onchange="toggleUploadFields()"><label for="ft-notes" class="ft-label"><span class="flt-icon">📎</span>Notes</label></div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-book" value="book" onchange="toggleUploadFields()"><label for="ft-book" class="ft-label"><span class="flt-icon">📗</span>Book PDF</label></div>
+            <div class="ft-opt"><input type="radio" name="file_type" id="ft-test" value="test" onchange="toggleUploadFields()"><label for="ft-test" class="ft-label"><span class="flt-icon">📄</span>Test Paper</label></div>
           </div>
           <label>Chapter</label>
           <select name="chapter" id="chSelect" onchange="syncNo('chSelect','chapter_no_notes')" required>
@@ -190,13 +190,28 @@ tbody tr:hover td{background:#f7fffe;}
             {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
           </select>
           <input type="hidden" name="chapter_no" id="chapter_no_notes">
-          <label>Section</label>
-          <select name="section" required>
-            <option value="">— Select —</option>
-            {% for sec in sections %}<option>{{ sec }}</option>{% endfor %}
-            <option value="All Sections">All Sections</option>
-          </select>
-          <div class="upload-box"><p>📄 PDF / Word / PowerPoint / Image</p><input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" required></div>
+          <!-- FIX #1: Multi-section checkboxes instead of single select -->
+          <label>Sections <small style="color:#888;font-weight:400;">(tick one or more)</small></label>
+          <div style="background:#f8fafc;border:1.5px solid #dde3ec;border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+            <label style="display:inline-flex;align-items:center;gap:5px;margin-bottom:6px;font-size:12px;font-weight:700;color:#0e9e82;">
+              <input type="checkbox" id="sec-all-cb" onchange="toggleAllSections(this)"> All Sections
+            </label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+              {% for sec in sections %}
+              <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:#e0fdf4;padding:3px 10px;border-radius:8px;cursor:pointer;">
+                <input type="checkbox" name="section" value="{{ sec }}" class="sec-cb"> {{ sec }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <!-- FIX #3: File upload OR external URL (for books) -->
+          <div id="file-upload-area">
+            <div class="upload-box"><p>📄 PDF / Word / PowerPoint / Image</p><input type="file" name="file" id="upload-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"></div>
+          </div>
+          <div id="url-upload-area" style="display:none;">
+            <label>📎 Book / Resource URL <small style="color:#888;font-weight:400;">(link to online book, Drive, etc.)</small></label>
+            <input type="url" name="external_url" id="external-url-input" placeholder="https://drive.google.com/... or any readable link">
+          </div>
           <label>Description</label>
           <input type="text" name="description" placeholder="Brief description...">
           <button class="btn btn-teal btn-full" type="submit">⬆ Upload</button>
@@ -361,10 +376,11 @@ tbody tr:hover td{background:#f7fffe;}
           <button type="button" class="add-q-btn" onclick="addQuestion()">+ Add Question</button>
         </div>
         <div id="link-section" style="display:none;">
-          <label>External Quiz Link</label>
-          <input type="url" name="external_link" placeholder="https://forms.google.com/...">
+          <label>External Quiz Link <span style="color:#ef4444;">*</span></label>
+          <input type="url" name="external_link" id="external_link_input" placeholder="https://forms.google.com/... (required for external link quiz)">
+          <div style="font-size:11px;color:#888;margin-top:-8px;margin-bottom:10px;">Paste the Google Form / Kahoot / any quiz link here</div>
         </div>
-        <button type="submit" class="btn btn-purple">🧠 Save Quiz</button>
+        <button type="submit" class="btn btn-purple" id="save-quiz-btn" onclick="return validateQuizForm()">🧠 Save Quiz</button>
       </form>
     </div>
     <div class="card">
@@ -460,26 +476,35 @@ tbody tr:hover td{background:#f7fffe;}
     </div>
   </div>
 
-  <!-- FEEDBACKS -->
+  <!-- QUERIES (was Feedbacks) -->
   <div id="tab-feedback" class="tab-content">
     <div class="card">
-      <div class="card-title">💬 Student Feedbacks</div>
+      <div class="card-title">💬 Student Queries</div>
       <div style="margin-bottom:14px;">
-        <a href="/view_feedbacks" class="btn btn-blue btn-sm">📊 View All Feedbacks</a>
+        <a href="/view_feedbacks?class={{ sel_class }}" class="btn btn-blue btn-sm">📊 View All Queries</a>
         {% for ch in chapters %}<a href="/view_feedbacks?class={{ sel_class }}&chapter_no={{ ch.no }}" class="btn btn-sm" style="background:#f0f4f8;color:#555;margin:2px;">Ch{{ ch.no }}</a>{% endfor %}
       </div>
-      {% if feedbacks %}
+      {% if queries %}
       <table>
-        <thead><tr><th>Student</th><th>Chapter</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead>
-        <tbody>{% for f in feedbacks %}<tr>
-          <td><strong>{{ f.student.student_name }}</strong></td>
-          <td>Ch {{ f.chapter_no }}</td>
-          <td>{% for i in range(f.rating) %}⭐{% endfor %}</td>
-          <td style="font-size:11px;color:#666;">{{ f.comment or '—' }}</td>
-          <td style="font-size:11px;color:#aaa;">{{ f.submitted_at }}</td>
+        <thead><tr><th>Student</th><th>Chapter</th><th>Query</th><th>When</th><th>Reply</th></tr></thead>
+        <tbody>{% for q in queries %}<tr>
+          <td><strong>{{ q.student.student_name }}</strong></td>
+          <td>Ch {{ q.chapter_no }}</td>
+          <td style="font-size:11px;color:#666;">{{ q.comment or '—' }}</td>
+          <td style="font-size:11px;color:#aaa;">{{ q.submitted_at }}</td>
+          <td>
+            {% if q.teacher_reply %}
+              <span style="font-size:11px;color:#0e9e82;">✓ {{ q.teacher_reply }}</span>
+            {% else %}
+            <form method="POST" action="/reply_query/{{ q.id }}" style="display:flex;gap:4px;">
+              <input type="text" name="reply" placeholder="Reply..." style="padding:4px 8px;border:1px solid #dde3ec;border-radius:6px;font-size:11px;width:140px;margin:0;">
+              <button type="submit" class="btn btn-teal btn-sm" style="padding:4px 10px;">Send</button>
+            </form>
+            {% endif %}
+          </td>
         </tr>{% endfor %}</tbody>
       </table>
-      {% else %}<div class="empty">No feedbacks yet.</div>{% endif %}
+      {% else %}<div class="empty">No student queries yet.</div>{% endif %}
     </div>
   </div>
 
@@ -499,10 +524,27 @@ function syncNo(selId, hiddenId) {
   const opt = sel.options[sel.selectedIndex];
   document.getElementById(hiddenId).value = opt.getAttribute('data-no') || 0;
 }
-function toggleQuizType() {
-  const t = document.getElementById('quiz_type_sel').value;
-  document.getElementById('mcq-section').style.display = t==='mcq' ? 'block' : 'none';
-  document.getElementById('link-section').style.display = t==='link' ? 'block' : 'none';
+function toggleAllSections(cb) {
+  document.querySelectorAll('.sec-cb').forEach(c => c.checked = cb.checked);
+}
+function toggleUploadFields() {
+  const type = document.querySelector('input[name="file_type"]:checked').value;
+  const isBook = type === 'book';
+  document.getElementById('file-upload-area').style.display = isBook ? 'none' : 'block';
+  document.getElementById('url-upload-area').style.display = isBook ? 'block' : 'none';
+  document.getElementById('upload-file-input').required = !isBook;
+}
+function validateQuizForm() {
+  const type = document.getElementById('quiz_type_sel').value;
+  if (type === 'link') {
+    const link = document.getElementById('external_link_input').value.trim();
+    if (!link) {
+      alert('⚠️ Please enter the External Quiz Link before saving.');
+      document.getElementById('external_link_input').focus();
+      return false;
+    }
+  }
+  return true;
 }
 let qCount = 1;
 function addQuestion() {
