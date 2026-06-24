@@ -1,46 +1,98 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-4">
-  <h3>💬 Student Feedbacks — Class {{ sel_class }}</h3>
-  <div style="display:flex;gap:8px;margin:12px 0 20px;flex-wrap:wrap;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Queries — MPS LMS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
+.header{background:linear-gradient(135deg,#0e9e82,#0a7a65);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:18px;font-weight:700;}
+.header a{color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:16px;font-size:13px;}
+.container{max-width:1100px;margin:28px auto;padding:0 20px;}
+.card{background:white;border-radius:16px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:20px;}
+.card-title{font-size:16px;font-weight:700;color:#0e9e82;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #e8eef5;}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+.filter-bar select{padding:7px 12px;border:1.5px solid #dde3ec;border-radius:10px;font-size:13px;background:#fafbfc;}
+.btn{display:inline-block;padding:7px 18px;border-radius:18px;font-size:12px;font-weight:600;color:white;border:none;cursor:pointer;text-decoration:none;}
+.btn-teal{background:#0e9e82;}.btn-blue{background:#0f4c81;}.btn-gray{background:#e2e8f0;color:#555;}
+.class-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#0f4c81;color:white;padding:10px 12px;text-align:left;font-size:12px;}
+tbody td{padding:10px 12px;border-bottom:1px solid #f0f3f8;font-size:12px;vertical-align:top;}
+tbody tr:hover td{background:#f7fffe;}
+.reply-form{display:flex;gap:6px;align-items:center;}
+.reply-form input{padding:5px 10px;border:1.5px solid #dde3ec;border-radius:8px;font-size:12px;width:200px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bg-green{background:#d1fae5;color:#065f46;}
+.bg-orange{background:#ffedd5;color:#9a3412;}
+.empty{text-align:center;padding:40px;color:#bbb;font-size:14px;}
+.replied-text{background:#e0fdf4;border-radius:8px;padding:6px 10px;color:#065f46;font-size:11px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>💬 Student Queries — Class {{ sel_class }}</h1>
+  <a href="/teacher?class={{ sel_class }}">← Back to Teacher</a>
+</div>
+<div class="container">
+  <div class="class-btns">
     {% for c in all_classes %}
-    <a href="/view_feedbacks?class={{ c }}" style="padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;text-decoration:none;
-      {% if c == sel_class %}background:#0e9e82;color:white;{% else %}background:#e8f5e9;color:#0e9e82;border:1px solid #0e9e82;{% endif %}">
+    <a href="/view_feedbacks?class={{ c }}" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;
+      {% if c == sel_class %}background:#0e9e82;color:white;{% else %}background:white;color:#0e9e82;border:1.5px solid #0e9e82;{% endif %}">
       Class {{ c }}
     </a>
     {% endfor %}
   </div>
-  <form method="GET" class="d-flex gap-2 mb-4">
-    <input type="hidden" name="class" value="{{ sel_class }}">
-    <select name="chapter_no" class="form-select w-auto">
-      <option value="0">All Chapters</option>
-      {% for ch in chapters %}
-      <option value="{{ ch.no }}" {% if selected_chapter == ch.no %}selected{% endif %}>Ch {{ ch.no }} — {{ ch.name }}</option>
-      {% endfor %}
-    </select>
-    <button class="btn btn-primary" type="submit">Filter</button>
-  </form>
-  {% if feedbacks %}
-  <table class="table table-bordered table-hover">
-    <thead class="table-dark">
-      <tr><th>#</th><th>Student</th><th>Chapter</th><th>Rating</th><th>Comment</th><th>Submitted</th></tr>
-    </thead>
-    <tbody>
-      {% for f in feedbacks %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td><strong>{{ f.student.student_name }}</strong><br><small>{{ f.student.admission_no }}</small></td>
-        <td>Ch {{ f.chapter_no }}</td>
-        <td>{% for i in range(f.rating) %}⭐{% endfor %} <small>({{ f.rating }}/5)</small></td>
-        <td>{{ f.comment or '—' }}</td>
-        <td><small>{{ f.submitted_at }}</small></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="alert alert-info">No feedbacks yet for Class {{ sel_class }}.</div>
-  {% endif %}
-  <a href="/teacher?class={{ sel_class }}" class="btn btn-secondary">← Back to Teacher</a>
+
+  <div class="card">
+    <div class="filter-bar">
+      <form method="GET" style="display:flex;gap:8px;align-items:center;">
+        <input type="hidden" name="class" value="{{ sel_class }}">
+        <select name="chapter_no">
+          <option value="0">All Chapters</option>
+          {% for ch in chapters %}
+          <option value="{{ ch.no }}" {% if selected_chapter == ch.no %}selected{% endif %}>Ch {{ ch.no }} — {{ ch.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-teal" type="submit">Filter</button>
+        {% if selected_chapter %}<a href="/view_feedbacks?class={{ sel_class }}" class="btn btn-gray">Clear</a>{% endif %}
+      </form>
+      <span style="font-size:12px;color:#888;">{{ queries|length }} queries found</span>
+    </div>
+
+    {% if queries %}
+    <table>
+      <thead>
+        <tr><th>#</th><th>Student</th><th>Chapter</th><th>Query</th><th>Submitted</th><th>Reply</th></tr>
+      </thead>
+      <tbody>
+        {% for q in queries %}
+        <tr>
+          <td style="color:#aaa;">{{ loop.index }}</td>
+          <td><strong>{{ q.student.student_name }}</strong><br><small style="color:#aaa;">{{ q.student.admission_no }}</small></td>
+          <td>Ch {{ q.chapter_no }}</td>
+          <td>{{ q.comment or '—' }}</td>
+          <td><small style="color:#aaa;">{{ q.submitted_at }}</small></td>
+          <td>
+            {% if q.teacher_reply %}
+              <div class="replied-text">✓ {{ q.teacher_reply }}<br><small style="color:#aaa;">{{ q.replied_at }}</small></div>
+            {% else %}
+            <form method="POST" action="/reply_query/{{ q.id }}" class="reply-form">
+              <input type="text" name="reply" placeholder="Type reply..." required>
+              <button type="submit" class="btn btn-teal">Reply</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">💬 No queries yet for Class {{ sel_class }}{% if selected_chapter %}, Chapter {{ selected_chapter }}{% endif %}.</div>
+    {% endif %}
+  </div>
 </div>
-{% endblock %}
+</body>
+</html>
