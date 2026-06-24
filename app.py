@@ -54,6 +54,8 @@ class Note(db.Model):
     section = db.Column(db.String(20))
     description = db.Column(db.String(300))
     file_type = db.Column(db.String(20), default="notes")
+    # FIX #3: support external URL for books
+    external_url = db.Column(db.String(500), default="")
     uploaded_at = db.Column(db.String(30), default="")
 
 class Assignment(db.Model):
@@ -78,6 +80,7 @@ class ChapterProgress(db.Model):
     book_done = db.Column(db.Boolean, default=False)
     quiz_done = db.Column(db.Boolean, default=False)
     game_done = db.Column(db.Boolean, default=False)
+    # FIX #9: renamed feedback_done -> query_done (kept column name for DB compat)
     feedback_done = db.Column(db.Boolean, default=False)
     updated_at = db.Column(db.String(30), default="")
 
@@ -169,7 +172,21 @@ class ChapterConfig(db.Model):
     has_book = db.Column(db.Boolean, default=False)
     has_quiz = db.Column(db.Boolean, default=False)
     has_game = db.Column(db.Boolean, default=False)
+    # FIX #9: has_feedback renamed semantically to has_query but kept DB column
     has_feedback = db.Column(db.Boolean, default=True)
+
+# FIX #9: New Query model (replaces Feedback as progress item)
+class StudentQuery(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
+    chapter_no = db.Column(db.Integer)
+    student_class = db.Column(db.String(10), default="6")
+    comment = db.Column(db.Text, default="")
+    submitted_at = db.Column(db.String(30), default="")
+    # FIX #9: teacher reply field
+    teacher_reply = db.Column(db.Text, default="")
+    replied_at = db.Column(db.String(30), default="")
+    student = db.relationship("Student", backref="queries")
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -272,7 +289,7 @@ def get_chapter_progress_pct(prog, config):
     if config.has_book:     total += 1; done += int(prog.book_done)
     if config.has_quiz:     total += 1; done += int(prog.quiz_done)
     if config.has_game:     total += 1; done += int(prog.game_done)
-    if config.has_feedback: total += 1; done += int(prog.feedback_done)
+    # FIX #9: feedback_done no longer counts toward progress
     return int((done / total) * 100) if total else 0
 
 # ─────────────────────────────────────────────
@@ -412,13 +429,14 @@ def teacher():
     games      = Game.query.filter_by(student_class=sel_class).order_by(Game.id.desc()).all()
     videos     = ChapterVideo.query.filter_by(student_class=sel_class).order_by(ChapterVideo.id.desc()).all()
     configs    = {c.chapter_no: c for c in ChapterConfig.query.filter_by(student_class=sel_class).all()}
-    feedbacks  = Feedback.query.filter_by(student_class=sel_class).order_by(Feedback.id.desc()).limit(20).all()
+    # FIX #5/#9: load queries (not feedbacks) for teacher view
+    queries    = StudentQuery.query.filter_by(student_class=sel_class).order_by(StudentQuery.id.desc()).limit(20).all()
     return render_template("teacher.html",
         notes=notes, books=books, assignments=assignments,
         quizzes=quizzes, games=games, videos=videos,
         configs=configs, chapters=chapters, sections=sections,
         months=MONTHS, teacher_name=session.get("teacher_name","Teacher"),
-        total_students=Student.query.count(), feedbacks=feedbacks,
+        total_students=Student.query.count(), queries=queries,
         sel_class=sel_class, all_classes=["6","7","8","9"])
 
 @app.route("/upload_notes", methods=["POST"])
@@ -428,22 +446,44 @@ def upload_notes():
     chapter    = request.form["chapter"]
     chapter_no = int(request.form.get("chapter_no", 0))
     sel_class  = request.form.get("student_class","6")
-    section    = request.form["section"]
+    # FIX #1: support multiple sections via checkbox list
+    sections_selected = request.form.getlist("section")
+    if not sections_selected:
+        sections_selected = [request.form.get("section", "All Sections")]
     description= request.form.get("description","")
     file_type  = request.form.get("file_type","notes")
+    external_url = request.form.get("external_url", "").strip()
+
+    # Save file once if provided
+    safe_name = ""
     if file and file.filename:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], safe_name))
-        db.session.add(Note(filename=safe_name, original_name=file.filename, chapter=chapter,
-            chapter_no=chapter_no, student_class=sel_class, section=section,
-            description=description, file_type=file_type, uploaded_at=now_str()))
+
+    # Create one Note record per selected section
+    for sec in sections_selected:
+        db.session.add(Note(
+            filename=safe_name,
+            original_name=file.filename if file and file.filename else "",
+            chapter=chapter,
+            chapter_no=chapter_no,
+            student_class=sel_class,
+            section=sec,
+            description=description,
+            file_type=file_type,
+            # FIX #3: store external URL
+            external_url=external_url,
+            uploaded_at=now_str()
+        ))
+
+    db.session.commit()
+
+    cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
+    if cfg:
+        if file_type == "notes": cfg.has_notes = True
+        if file_type == "book":  cfg.has_book  = True
         db.session.commit()
-        cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
-        if cfg:
-            if file_type == "notes": cfg.has_notes = True
-            if file_type == "book":  cfg.has_book  = True
-            db.session.commit()
     return redirect(f"/teacher?class={sel_class}")
 
 @app.route("/delete_note/<int:id>")
@@ -452,8 +492,9 @@ def delete_note(id):
     note = db.session.get(Note, id)
     sel_class = note.student_class if note else "6"
     if note:
-        fpath = os.path.join(app.config["UPLOAD_FOLDER"], note.filename)
-        if os.path.exists(fpath): os.remove(fpath)
+        if note.filename:
+            fpath = os.path.join(app.config["UPLOAD_FOLDER"], note.filename)
+            if os.path.exists(fpath): os.remove(fpath)
         db.session.delete(note); db.session.commit()
     return redirect(f"/teacher?class={sel_class}")
 
@@ -540,22 +581,33 @@ def create_quiz():
     chapter_no = int(request.form.get("chapter_no",0))
     sel_class  = request.form.get("student_class","6")
     quiz_type  = request.form.get("quiz_type","mcq")
+    external_link = request.form.get("external_link","").strip()
+
+    # FIX #4: validate external link quiz has a link before saving
+    if quiz_type == "link" and not external_link:
+        return redirect(f"/teacher?class={sel_class}&error=link_missing")
+
     quiz = Quiz(title=request.form["title"], chapter=request.form["chapter"],
         chapter_no=chapter_no, student_class=sel_class, section=request.form["section"],
         description=request.form.get("description",""), quiz_type=quiz_type,
-        external_link=request.form.get("external_link",""), created_at=now_str())
+        external_link=external_link, created_at=now_str())
     db.session.add(quiz); db.session.flush()
     if quiz_type == "mcq":
         questions = request.form.getlist("question_text")
+        opts_a = request.form.getlist("option_a")
+        opts_b = request.form.getlist("option_b")
+        opts_c = request.form.getlist("option_c")
+        opts_d = request.form.getlist("option_d")
+        correct = request.form.getlist("correct_option")
         for i, qtext in enumerate(questions):
             if qtext.strip():
                 db.session.add(QuizQuestion(
                     quiz_id=quiz.id, question_text=qtext.strip(),
-                    option_a=request.form.getlist("option_a")[i],
-                    option_b=request.form.getlist("option_b")[i],
-                    option_c=request.form.getlist("option_c")[i],
-                    option_d=request.form.getlist("option_d")[i],
-                    correct_option=request.form.getlist("correct_option")[i]))
+                    option_a=opts_a[i] if i < len(opts_a) else "",
+                    option_b=opts_b[i] if i < len(opts_b) else "",
+                    option_c=opts_c[i] if i < len(opts_c) else "",
+                    option_d=opts_d[i] if i < len(opts_d) else "",
+                    correct_option=correct[i] if i < len(correct) else "A"))
     cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
     if cfg: cfg.has_quiz = True
     db.session.commit()
@@ -610,20 +662,33 @@ def game_leaderboard(game_id):
     scores = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).all()
     return render_template("game_leaderboard.html", game=game, scores=scores)
 
+# FIX #5/#9: view_feedbacks now shows queries with chapter filter and reply button
 @app.route("/view_feedbacks")
 def view_feedbacks():
     if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
     sel_class  = request.args.get("class","6")
     chapter_no = request.args.get("chapter_no", 0, type=int)
     chapters   = ALL_CHAPTERS.get(sel_class, ALL_CHAPTERS["6"])
-    query = Feedback.query.filter_by(student_class=sel_class)
+    query = StudentQuery.query.filter_by(student_class=sel_class)
     if chapter_no: query = query.filter_by(chapter_no=chapter_no)
-    feedbacks = query.order_by(Feedback.id.desc()).all()
-    return render_template("view_feedbacks.html", feedbacks=feedbacks, chapters=chapters,
+    queries = query.order_by(StudentQuery.id.desc()).all()
+    return render_template("view_feedbacks.html", queries=queries, chapters=chapters,
         selected_chapter=chapter_no, sel_class=sel_class, all_classes=["6","7","8","9"])
 
+# FIX #9: teacher reply to query
+@app.route("/reply_query/<int:query_id>", methods=["POST"])
+def reply_query(query_id):
+    if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
+    q = db.session.get(StudentQuery, query_id)
+    if q:
+        q.teacher_reply = request.form.get("reply","").strip()
+        q.replied_at = now_str()
+        db.session.commit()
+    sel_class = q.student_class if q else "6"
+    return redirect(f"/view_feedbacks?class={sel_class}")
+
 # ─────────────────────────────────────────────
-# STUDENT PORTAL  (auto-routes by student_class)
+# STUDENT PORTAL
 # ─────────────────────────────────────────────
 
 @app.route("/student")
@@ -632,7 +697,7 @@ def student_portal():
         return render_template("student.html", student=None, chapters=[],
             notes=[], books=[], quizzes=[], assignments=[], games=[], videos=[],
             progress_map={}, submitted_ids={}, attempted_quiz_ids={},
-            game_scores={}, feedbacks_done=set(), chapter_configs={},
+            game_scores={}, queries_done=set(), chapter_configs={},
             chapter_pcts={}, completed=0, in_progress=0, total_chapters=0,
             student_class="")
 
@@ -641,7 +706,7 @@ def student_portal():
         session.pop("student_id", None)
         return redirect("/student")
 
-    cls  = student.student_class   # "6", "7", "8", or "9"
+    cls  = student.student_class
     sec  = student.section
     CHAPTERS = ALL_CHAPTERS.get(cls, ALL_CHAPTERS["6"])
     configs  = {c.chapter_no: c for c in ChapterConfig.query.filter_by(student_class=cls).all()}
@@ -665,7 +730,9 @@ def student_portal():
     submitted_ids     = {s.assignment_id: s.status for s in AssignmentSubmission.query.filter_by(student_id=student.id).all()}
     attempted_quiz_ids= {a.quiz_id: a for a in QuizAttempt.query.filter_by(student_id=student.id).all()}
     game_scores       = {s.game_id: s for s in GameScore.query.filter_by(student_id=student.id).all()}
-    feedbacks_done    = {f.chapter_no for f in Feedback.query.filter_by(student_id=student.id, student_class=cls).all()}
+    # FIX #9: track queries submitted (not feedback)
+    queries_done      = {q.chapter_no for q in StudentQuery.query.filter_by(student_id=student.id, student_class=cls).all()}
+    student_queries   = StudentQuery.query.filter_by(student_id=student.id, student_class=cls).order_by(StudentQuery.id.desc()).all()
 
     chapter_pcts = {}
     for ch in CHAPTERS:
@@ -682,7 +749,8 @@ def student_portal():
         quizzes=quizzes, assignments=assignments, games=games, videos=videos,
         progress_map=progs, submitted_ids=submitted_ids,
         attempted_quiz_ids=attempted_quiz_ids, game_scores=game_scores,
-        feedbacks_done=feedbacks_done, chapter_configs=configs,
+        queries_done=queries_done, student_queries=student_queries,
+        chapter_configs=configs,
         chapter_pcts=chapter_pcts, completed=completed,
         in_progress=in_progress, total_chapters=len(CHAPTERS),
         student_class=cls)
@@ -698,7 +766,7 @@ def student_login():
     return render_template("student.html", student=None, error="Admission No not found.",
         chapters=[], notes=[], books=[], quizzes=[], assignments=[], games=[], videos=[],
         progress_map={}, submitted_ids={}, attempted_quiz_ids={}, game_scores={},
-        feedbacks_done=set(), chapter_configs={}, chapter_pcts={},
+        queries_done=set(), student_queries=[], chapter_configs={}, chapter_pcts={},
         completed=0, in_progress=0, total_chapters=0, student_class="")
 
 @app.route("/student_logout")
@@ -706,7 +774,8 @@ def student_logout():
     session.pop("student_id", None)
     return redirect("/student")
 
-@app.route("/mark_video/<int:chapter_no>")
+# FIX #2: mark_video now uses POST to avoid "method not allowed" and correctly marks progress
+@app.route("/mark_video/<int:chapter_no>", methods=["GET","POST"])
 def mark_video(chapter_no):
     if "student_id" not in session: return redirect("/student")
     student = db.session.get(Student, session["student_id"])
@@ -719,7 +788,8 @@ def mark_video(chapter_no):
     db.session.commit()
     return redirect("/student")
 
-@app.route("/mark_notes/<int:chapter_no>")
+# FIX #7: mark_notes accepts both GET and POST (was returning 405)
+@app.route("/mark_notes/<int:chapter_no>", methods=["GET","POST"])
 def mark_notes(chapter_no):
     if "student_id" not in session: return redirect("/student")
     student = db.session.get(Student, session["student_id"])
@@ -732,7 +802,7 @@ def mark_notes(chapter_no):
     db.session.commit()
     return redirect("/student")
 
-@app.route("/mark_book/<int:chapter_no>")
+@app.route("/mark_book/<int:chapter_no>", methods=["GET","POST"])
 def mark_book(chapter_no):
     if "student_id" not in session: return redirect("/student")
     student = db.session.get(Student, session["student_id"])
@@ -754,12 +824,23 @@ def submit_assignment(assignment_id):
         db.session.commit()
     return redirect("/student")
 
+# FIX #8: attempt_quiz uses proper standalone template (no base.html dependency)
 @app.route("/attempt_quiz/<int:quiz_id>", methods=["GET","POST"])
 def attempt_quiz(quiz_id):
     if "student_id" not in session: return redirect("/student")
     quiz = db.session.get(Quiz, quiz_id)
     if not quiz: return redirect("/student")
-    if quiz.quiz_type == "link": return redirect(quiz.external_link)
+    if quiz.quiz_type == "link":
+        # Mark quiz done for external links
+        student = db.session.get(Student, session["student_id"])
+        cls = student.student_class if student else "6"
+        prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls).first()
+        if not prog:
+            prog = ChapterProgress(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls)
+            db.session.add(prog)
+        prog.quiz_done = True; prog.updated_at = now_str()
+        db.session.commit()
+        return redirect(quiz.external_link)
     existing = QuizAttempt.query.filter_by(student_id=session["student_id"], quiz_id=quiz_id).first()
     if existing: return redirect("/student")
     if request.method == "POST":
@@ -778,6 +859,7 @@ def attempt_quiz(quiz_id):
         return render_template("quiz_score.html", score=score, total=total, quiz=quiz)
     return render_template("attempt_quiz.html", quiz=quiz)
 
+# FIX #8: play_game — game template is standalone, no base.html
 @app.route("/play_game/<int:game_id>")
 def play_game(game_id):
     if "student_id" not in session: return redirect("/student")
@@ -816,27 +898,39 @@ def save_game_score():
         leaderboard.append({"name": s.student.student_name, "score": s.score, "time": s.time_seconds})
     return jsonify({"ok": True, "leaderboard": leaderboard})
 
-@app.route("/submit_feedback", methods=["POST"])
-def submit_feedback():
+# FIX #9: submit_query (replaces submit_feedback — not a progress item)
+@app.route("/submit_query", methods=["POST"])
+def submit_query():
     if "student_id" not in session: return redirect("/student")
     chapter_no = int(request.form["chapter_no"])
     student    = db.session.get(Student, session["student_id"])
     cls        = student.student_class if student else "6"
-    existing   = Feedback.query.filter_by(student_id=session["student_id"], chapter_no=chapter_no, student_class=cls).first()
-    if existing: return redirect("/student")
-    db.session.add(Feedback(student_id=session["student_id"], chapter_no=chapter_no,
-        student_class=cls, rating=int(request.form.get("rating",5)),
-        comment=request.form.get("comment",""), submitted_at=now_str()))
-    prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=chapter_no, student_class=cls).first()
-    if not prog:
-        prog = ChapterProgress(student_id=session["student_id"], chapter_no=chapter_no, student_class=cls)
-        db.session.add(prog)
-    prog.feedback_done = True; prog.updated_at = now_str()
+    db.session.add(StudentQuery(
+        student_id=session["student_id"], chapter_no=chapter_no,
+        student_class=cls,
+        comment=request.form.get("comment",""),
+        submitted_at=now_str()))
     db.session.commit()
     return redirect("/student")
 
+# Keep old feedback endpoint for backward compatibility
+@app.route("/submit_feedback", methods=["POST"])
+def submit_feedback():
+    return submit_query()
+
+# FIX #6: serve uploads inline (content-disposition: inline) to prevent download
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
+    import mimetypes
+    mime, _ = mimetypes.guess_type(filename)
+    # For PDFs and images, serve inline so browser opens them instead of downloading
+    if mime and (mime == "application/pdf" or mime.startswith("image/")):
+        from flask import send_from_directory, make_response
+        response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
+        response.headers["Content-Disposition"] = f"inline; filename={filename}"
+        response.headers["Content-Type"] = mime
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 # ─────────────────────────────────────────────
