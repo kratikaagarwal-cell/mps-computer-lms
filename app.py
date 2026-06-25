@@ -547,39 +547,23 @@ def save_chapter_config():
     db.session.commit()
     return redirect(f"/teacher?class={sel_class}")
 
-# FIX #4: Support multiple section selection for assignments
 @app.route("/create_assignment", methods=["POST"])
 def create_assignment():
     if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
     filename  = ""
     sel_class = request.form.get("student_class","6")
-    chapter_no = int(request.form.get("chapter_no",0))
-    chapter = request.form.get("chapter","")
-    
     file = request.files.get("file")
     if file and file.filename:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], safe_name))
         filename = safe_name
-    
-    # Handle multiple sections (FIX #4)
-    sections_selected = request.form.getlist("section")
-    if not sections_selected:
-        sections_selected = [request.form.get("section", "All Sections")]
-    
-    # Create assignment for each selected section
-    for sec in sections_selected:
-        db.session.add(Assignment(
-            title=request.form["title"], chapter=chapter,
-            chapter_no=chapter_no,
-            student_class=sel_class, section=sec,
-            description=request.form.get("description",""), due_date=request.form.get("due_date",""),
-            filename=filename, created_at=now_str()))
-    
-    cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
-    if cfg: cfg.has_assignment = True
-    
+    db.session.add(Assignment(
+        title=request.form["title"], chapter=request.form["chapter"],
+        chapter_no=int(request.form.get("chapter_no",0)),
+        student_class=sel_class, section=request.form["section"],
+        description=request.form.get("description",""), due_date=request.form.get("due_date",""),
+        filename=filename, created_at=now_str()))
     db.session.commit()
     return redirect(f"/teacher?class={sel_class}")
 
@@ -643,18 +627,6 @@ def quiz_results(quiz_id):
     quiz     = db.session.get(Quiz, quiz_id)
     attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).order_by(QuizAttempt.score.desc()).all()
     return render_template("quiz_results.html", quiz=quiz, attempts=attempts)
-
-# FIX #3: View assignment submissions
-@app.route("/assignment_submissions/<int:assignment_id>")
-def assignment_submissions(assignment_id):
-    if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
-    assignment = db.session.get(Assignment, assignment_id)
-    if not assignment: return redirect("/teacher")
-    submissions = AssignmentSubmission.query.filter_by(assignment_id=assignment_id).all()
-    all_students = Student.query.filter_by(student_class=assignment.student_class).all()
-    submitted_ids = {s.student_id for s in submissions}
-    return render_template("assignment_submissions.html", assignment=assignment, submissions=submissions, 
-        all_students=all_students, submitted_ids=submitted_ids, sel_class=assignment.student_class)
 
 @app.route("/create_game", methods=["POST"])
 def create_game():
@@ -852,8 +824,7 @@ def submit_assignment(assignment_id):
         db.session.commit()
     return redirect("/student")
 
-# FIX #8: attempt_quiz uses proper standalone template (no base.html dependency)
-# FIXED: Allow re-attempts by removing the existing check restriction
+# FIX: Allow multiple quiz attempts - replace old score if new one is better
 @app.route("/attempt_quiz/<int:quiz_id>", methods=["GET","POST"])
 def attempt_quiz(quiz_id):
     if "student_id" not in session: return redirect("/student")
@@ -871,14 +842,27 @@ def attempt_quiz(quiz_id):
         db.session.commit()
         return redirect(quiz.external_link)
     
-    # Check if already attempted (for displaying message only, not blocking)
+    # Check if already attempted
     existing = QuizAttempt.query.filter_by(student_id=session["student_id"], quiz_id=quiz_id).first()
     
     if request.method == "POST":
         score = sum(1 for q in quiz.questions if request.form.get(f"q_{q.id}","").upper() == q.correct_option.upper())
         total = len(quiz.questions)
-        db.session.add(QuizAttempt(student_id=session["student_id"], quiz_id=quiz_id,
-            score=score, total=total, attempted_at=now_str()))
+        
+        if existing:
+            # FIX: Replace old score if new score is better
+            if score > existing.score:
+                existing.score = score
+                existing.total = total
+                existing.attempted_at = now_str()
+            else:
+                # Keep existing score if new one is not better, but still update time
+                existing.attempted_at = now_str()
+        else:
+            # FIX: Create new attempt (allow multiple attempts)
+            db.session.add(QuizAttempt(student_id=session["student_id"], quiz_id=quiz_id,
+                score=score, total=total, attempted_at=now_str()))
+        
         student = db.session.get(Student, session["student_id"])
         cls = student.student_class if student else "6"
         prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls).first()
@@ -887,28 +871,25 @@ def attempt_quiz(quiz_id):
             db.session.add(prog)
         prog.quiz_done = True; prog.updated_at = now_str()
         db.session.commit()
-        return render_template("quiz_score.html", score=score, total=total, quiz=quiz)
-    return render_template("attempt_quiz.html", quiz=quiz, already_attempted=existing)
+        return render_template("quiz_score.html", score=score, total=total, quiz=quiz, is_retry=existing is not None)
+    
+    return render_template("attempt_quiz.html", quiz=quiz)
 
-# FIX #8: play_game — game template is standalone, no base.html
+# FIX: play_game with proper error handling - allow replaying
 @app.route("/play_game/<int:game_id>")
 def play_game(game_id):
     if "student_id" not in session: return redirect("/student")
     try:
         game = db.session.get(Game, game_id)
-        if not game: return render_template("error.html", message="Game not found"), 404
+        if not game: 
+            return render_template("error.html", message="Game not found"), 404
         
-        student = db.session.get(Student, session["student_id"])
-        if not student: return redirect("/student")
-        
-        # Check access permissions
-        if game.student_class != student.student_class:
-            return render_template("error.html", message="Access denied"), 403
-        if game.section != "All Sections" and game.section != student.section:
-            return render_template("error.html", message="Access denied"), 403
-        
+        # Get student's existing score for this game (if any)
         existing = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
+        
+        # Get leaderboard
         leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
+        
         return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard)
     except Exception as e:
         print(f"Error in play_game: {str(e)}")
@@ -916,52 +897,32 @@ def play_game(game_id):
 
 @app.route("/save_game_score", methods=["POST"])
 def save_game_score():
-    if "student_id" not in session: return jsonify({"ok": False, "error": "Not logged in"})
-    try:
-        data = request.get_json()
-        if not data: return jsonify({"ok": False, "error": "No data"})
-        
-        game_id = data.get("game_id")
-        score = data.get("score", 0)
-        time_seconds = data.get("time_seconds", 999)
-        
-        game = db.session.get(Game, game_id)
-        if not game: return jsonify({"ok": False, "error": "Game not found"})
-        
-        student = db.session.get(Student, session["student_id"])
-        if not student: return jsonify({"ok": False, "error": "Student not found"})
-        
-        # Check access
-        if game.student_class != student.student_class:
-            return jsonify({"ok": False, "error": "Access denied"})
-        
-        existing = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
-        if existing:
-            if score > existing.score or (score == existing.score and time_seconds < existing.time_seconds):
-                existing.score = score; existing.time_seconds = time_seconds; existing.played_at = now_str()
-        else:
-            db.session.add(GameScore(student_id=session["student_id"], game_id=game_id,
-                score=score, time_seconds=time_seconds, played_at=now_str()))
-        
-        student = db.session.get(Student, session["student_id"])
-        cls = student.student_class if student else "6"
-        prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=game.chapter_no, student_class=cls).first()
-        if not prog:
-            prog = ChapterProgress(student_id=session["student_id"], chapter_no=game.chapter_no, student_class=cls)
-            db.session.add(prog)
-        prog.game_done = True; prog.updated_at = now_str()
-        db.session.commit()
-        
-        leaderboard = []
-        for s in GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all():
-            if s.student:
-                leaderboard.append({"name": s.student.student_name, "score": s.score, "time": s.time_seconds})
-        return jsonify({"ok": True, "leaderboard": leaderboard})
-    except Exception as e:
-        print(f"Error in save_game_score: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"ok": False, "error": str(e)})
+    if "student_id" not in session: return jsonify({"ok": False})
+    data         = request.get_json()
+    game_id      = data.get("game_id")
+    score        = data.get("score", 0)
+    time_seconds = data.get("time_seconds", 999)
+    game = db.session.get(Game, game_id)
+    if not game: return jsonify({"ok": False})
+    existing = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
+    if existing:
+        if score > existing.score or (score == existing.score and time_seconds < existing.time_seconds):
+            existing.score = score; existing.time_seconds = time_seconds; existing.played_at = now_str()
+    else:
+        db.session.add(GameScore(student_id=session["student_id"], game_id=game_id,
+            score=score, time_seconds=time_seconds, played_at=now_str()))
+    student = db.session.get(Student, session["student_id"])
+    cls = student.student_class if student else "6"
+    prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=game.chapter_no, student_class=cls).first()
+    if not prog:
+        prog = ChapterProgress(student_id=session["student_id"], chapter_no=game.chapter_no, student_class=cls)
+        db.session.add(prog)
+    prog.game_done = True; prog.updated_at = now_str()
+    db.session.commit()
+    leaderboard = []
+    for s in GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all():
+        leaderboard.append({"name": s.student.student_name, "score": s.score, "time": s.time_seconds})
+    return jsonify({"ok": True, "leaderboard": leaderboard})
 
 # FIX #9: submit_query (replaces submit_feedback — not a progress item)
 @app.route("/submit_query", methods=["POST"])
@@ -983,93 +944,54 @@ def submit_query():
 def submit_feedback():
     return submit_query()
 
-# FIX #8: Student access routes to prevent 404 errors
-@app.route("/view_note/<int:note_id>", methods=["GET"])
-def view_note(note_id):
-    """Allow student to view a note"""
-    if "student_id" not in session: return redirect("/student")
-    note = db.session.get(Note, note_id)
-    if not note: return render_template("error.html", message="Note not found"), 404
-    student = db.session.get(Student, session["student_id"])
-    if not student: return redirect("/student")
-    if note.student_class != student.student_class:
-        return render_template("error.html", message="Access denied"), 403
-    if note.section != "All Sections" and note.section != student.section:
-        return render_template("error.html", message="Access denied"), 403
-    if note.external_url:
-        return redirect(note.external_url)
-    elif note.filename:
-        return redirect(f"/uploads/{note.filename}")
-    else:
-        return render_template("error.html", message="Note file not found"), 404
-
-@app.route("/view_book/<int:book_id>", methods=["GET"])
-def view_book(book_id):
-    """Allow student to view a book"""
-    if "student_id" not in session: return redirect("/student")
-    book = db.session.get(Note, book_id)
-    if not book or book.file_type != "book": 
-        return render_template("error.html", message="Book not found"), 404
-    student = db.session.get(Student, session["student_id"])
-    if not student: return redirect("/student")
-    if book.student_class != student.student_class:
-        return render_template("error.html", message="Access denied"), 403
-    if book.section != "All Sections" and book.section != student.section:
-        return render_template("error.html", message="Access denied"), 403
-    if book.external_url:
-        return redirect(book.external_url)
-    elif book.filename:
-        return redirect(f"/uploads/{book.filename}")
-    else:
-        return render_template("error.html", message="Book file not found"), 404
-
-@app.route("/view_assignment/<int:assignment_id>", methods=["GET"])
-def view_assignment(assignment_id):
-    """Allow student to view an assignment"""
-    if "student_id" not in session: return redirect("/student")
-    assignment = db.session.get(Assignment, assignment_id)
-    if not assignment: return render_template("error.html", message="Assignment not found"), 404
-    student = db.session.get(Student, session["student_id"])
-    if not student: return redirect("/student")
-    if assignment.student_class != student.student_class:
-        return render_template("error.html", message="Access denied"), 403
-    if assignment.section != "All Sections" and assignment.section != student.section:
-        return render_template("error.html", message="Access denied"), 403
-    if assignment.filename:
-        return redirect(f"/uploads/{assignment.filename}")
-    else:
-        return render_template("error.html", message="Assignment file not found"), 404
-
-# FIX #5 #6: serve uploads inline (content-disposition: inline) to prevent download, with better error handling
+# FIX #6: serve uploads inline (content-disposition: inline) to prevent download
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
+    """Serve uploaded files - handles PDFs, images, docs, etc."""
     import mimetypes
+    import os
     
     # Security: prevent directory traversal
     if ".." in filename or "/" in filename or "\\" in filename:
-        return "Forbidden", 403
+        return "Access Denied", 403
     
     upload_folder = app.config["UPLOAD_FOLDER"]
     file_path = os.path.join(upload_folder, filename)
     
-    # Verify file exists and is a file (not directory)
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        return render_template("error.html", message="File not found"), 404
+    # Verify file exists
+    if not os.path.exists(file_path):
+        # Create error.html if it doesn't exist, fall back to plain error
+        try:
+            return render_template("error.html", message=f"File '{filename}' not found"), 404
+        except:
+            return f"File not found: {filename}", 404
+    
+    if not os.path.isfile(file_path):
+        return "Not a file", 400
+    
+    # Get MIME type
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        mime_type = "application/octet-stream"
     
     try:
-        mime, _ = mimetypes.guess_type(filename)
-        # For PDFs and images, serve inline so browser opens them instead of downloading
-        if mime and (mime == "application/pdf" or mime.startswith("image/")):
-            from flask import send_from_directory, make_response
-            response = make_response(send_from_directory(upload_folder, filename))
-            response.headers["Content-Disposition"] = f"inline; filename={filename}"
-            response.headers["Content-Type"] = mime
-            response.headers["X-Content-Type-Options"] = "nosniff"
+        # For PDFs and images: open in browser (inline)
+        if mime_type in ["application/pdf"] or mime_type.startswith("image/"):
+            response = send_from_directory(upload_folder, filename)
+            response.headers["Content-Disposition"] = "inline"
+            response.headers["Content-Type"] = mime_type
             return response
-        return send_from_directory(upload_folder, filename)
+        
+        # For other files: download
+        response = send_from_directory(upload_folder, filename, as_attachment=True)
+        response.headers["Content-Type"] = mime_type
+        return response
+        
+    except FileNotFoundError:
+        return "File not found", 404
     except Exception as e:
         print(f"Error serving file {filename}: {str(e)}")
-        return render_template("error.html", message="Error loading file"), 500
+        return f"Error loading file", 500
 
 # ─────────────────────────────────────────────
 # DB INIT
