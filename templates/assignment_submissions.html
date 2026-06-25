@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Assignment Submissions</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #0f4c81, #1565c0); color: white; padding: 30px; border-radius: 16px; margin-bottom: 24px; }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .info-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #555; }
+        .info-value { color: #0f4c81; }
+        .stats-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+        .stat-mini { background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #0f4c81; }
+        .stat-num { font-size: 20px; font-weight: 700; color: #0f4c81; }
+        .stat-label { font-size: 11px; color: #888; margin-top: 4px; }
+        table { width: 100%; background: white; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        thead { background: #0f4c81; color: white; }
+        th { padding: 14px; text-align: left; font-size: 13px; font-weight: 600; }
+        td { padding: 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-submitted { background: #d1fae5; color: #065f46; }
+        .empty { text-align: center; padding: 40px; color: #bbb; }
+        .btn { display: inline-block; padding: 10px 20px; background: #0f4c81; color: white; border: none; border-radius: 8px; text-decoration: none; font-size: 13px; cursor: pointer; margin-top: 20px; }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📝 {{ assignment.title }}</h1>
+        <p>Chapter: {{ assignment.chapter }} | Due: {{ assignment.due_date or '—' }}</p>
+    </div>
+
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Description</span>
+            <span class="info-value">{{ assignment.description or '—' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Section</span>
+            <span class="info-value">{{ assignment.section or 'All Sections' }}</span>
+        </div>
+        
+        <div class="stats-mini">
+            <div class="stat-mini">
+                <div class="stat-num">{{ all_students|length }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-num">{{ submissions|length }}</div>
+                <div class="stat-label">Submitted</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-num">{{ all_students|length - submissions|length }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+    </div>
+
+    {% if all_students %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Student Name</th>
+                <th>Admission No</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Submitted At</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in all_students %}
+            {% set submission = submissions|selectattr('student_id', 'equalto', student.id)|first %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ student.student_name }}</strong></td>
+                <td>{{ student.admission_no }}</td>
+                <td>{{ student.section }}</td>
+                <td>
+                    {% if submission %}
+                        <span class="badge badge-submitted">✓ Submitted</span>
+                    {% else %}
+                        <span class="badge badge-pending">⏳ Pending</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 12px; color: #888;">{{ submission.submitted_at if submission else '—' }}</td>
+                <td style="font-size: 12px; color: #666;">{{ submission.remarks if submission else '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <p>No students in this class yet</p>
+    </div>
+    {% endif %}
+
+    <a href="/teacher?class={{ sel_class }}" class="btn">← Back to Dashboard</a>
+</div>
+</body>
+</html>
