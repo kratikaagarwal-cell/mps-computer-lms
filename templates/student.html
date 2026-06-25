@@ -286,12 +286,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="qc-title">🧠 {{ q.title }}</div>
           <div class="qc-meta">{{ q.chapter }} · Sec {{ q.section }} · {% if q.quiz_type=='mcq' %}<strong>{{ q.questions|length }} Questions</strong>{% else %}External Link{% endif %}{% if q.description %} · {{ q.description }}{% endif %}</div>
           {% if attempt %}
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
               <div><div class="qc-score">{{ attempt.score }}/{{ attempt.total }}</div><div style="font-size:11px;color:#888;">Best Score</div></div>
               {% set pct = (attempt.score/attempt.total*100)|int if attempt.total else 0 %}
               <span class="badge {% if pct>=80 %}bg-green{% elif pct>=50 %}bg-blue{% else %}bg-orange{% endif %}">{{ pct }}%</span>
             </div>
-            <a href="/attempt_quiz/{{ q.id }}" class="btn btn-purple" style="font-size:11px;padding:5px 14px;">🔄 Attempt Again (Score Will Update)</a>
+            <a href="/attempt_quiz/{{ q.id }}" class="btn btn-purple" style="margin-top:8px;font-size:11px;padding:6px 12px;">🔄 Attempt Again</a>
           {% else %}
             <a href="/attempt_quiz/{{ q.id }}" class="btn btn-purple">🧠 Attempt Quiz</a>
           {% endif %}
@@ -337,17 +337,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="at">{{ a.title }}</div>
           <div class="am">{{ a.chapter }} · Sec: {{ a.section or 'All' }} · Due: <strong style="color:#e74c3c;">{{ a.due_date or 'No deadline' }}</strong></div>
           {% if a.description %}<div class="ad">📌 {{ a.description }}</div>{% endif %}
-          <div class="assign-footer">
-            <div style="display:flex;gap:10px;align-items:center;">
-              {% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-blue" target="_blank" style="margin-right:6px;">📎 View Assignment</a>{% endif %}
-              {% if is_submitted %}
-                <span class="badge bg-green" style="padding:6px 12px;font-size:12px;">✓ Done</span>
-              {% else %}
-                <form method="POST" action="/submit_assignment/{{ a.id }}" style="display:inline;">
-                  <button type="submit" class="btn btn-teal" style="font-size:12px;padding:6px 14px;">✅ Mark Done</button>
-                </form>
-              {% endif %}
-            </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+            {% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-blue btn-sm" target="_blank">📎 View</a>{% endif %}
+            {% if is_submitted %}
+              <span class="badge bg-green" style="padding:5px 10px;font-size:11px;">✓ Done</span>
+            {% else %}
+              <a href="/submit_assignment/{{ a.id }}" class="btn btn-teal btn-sm">✅ Mark Done</a>
+            {% endif %}
           </div>
         </div>
         {% endfor %}
