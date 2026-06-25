@@ -228,11 +228,17 @@ tbody tr:hover td{background:#f7fffe;}
             {% for ch in chapters %}<option value="Ch {{ ch.no }} - {{ ch.name }}" data-no="{{ ch.no }}">Ch {{ ch.no }} — {{ ch.name }}</option>{% endfor %}
           </select>
           <input type="hidden" name="chapter_no" id="chapter_no_assign">
-          <label>Section</label>
-          <select name="section">
-            <option value="">All Sections</option>
-            {% for sec in sections %}<option>{{ sec }}</option>{% endfor %}
-          </select>
+          <label>Sections</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:#e0fdf4;padding:3px 10px;border-radius:8px;cursor:pointer;">
+              <input type="checkbox" name="section" value="All Sections" onchange="toggleAllSectionAssign(this)"> All Sections
+            </label>
+            {% for sec in sections %}
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:#e0fdf4;padding:3px 10px;border-radius:8px;cursor:pointer;">
+              <input type="checkbox" name="section" value="{{ sec }}" class="assign-sec-cb"> {{ sec }}
+            </label>
+            {% endfor %}
+          </div>
           <label>Instructions</label><textarea name="description"></textarea>
           <div class="upload-box" style="margin-bottom:12px;"><p>📎 Attach paper (optional)</p><input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"></div>
           <label>Due Date</label><input type="date" name="due_date">
@@ -302,7 +308,7 @@ tbody tr:hover td{background:#f7fffe;}
           <td><span class="badge bg-blue">{{ n.section }}</span></td>
           <td style="color:#777;font-size:11px;">{{ n.description or '—' }}</td>
           <td style="color:#aaa;font-size:11px;">{{ n.uploaded_at or '—' }}</td>
-          <td><a href="/uploads/{{ n.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+          <td><a href="/uploads/{{ n.filename }}" class="btn btn-teal btn-sm" target="_blank" title="View">👁️</a> <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
         </tr>{% endfor %}</tbody>
       </table>
       {% else %}<div class="empty">No notes uploaded yet.</div>{% endif %}
@@ -469,7 +475,7 @@ tbody tr:hover td{background:#f7fffe;}
           <td><span class="badge bg-blue">{{ a.section or 'All' }}</span></td>
           <td style="color:#e74c3c;font-size:12px;font-weight:600;">{{ a.due_date or '—' }}</td>
           <td>{% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-teal btn-sm" target="_blank">📎</a>{% else %}—{% endif %}</td>
-          <td><a href="/delete_assignment/{{ a.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+          <td><a href="/assignment_submissions/{{ a.id }}" class="btn btn-blue btn-sm">📊</a> <a href="/delete_assignment/{{ a.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
         </tr>{% endfor %}</tbody>
       </table>
       {% else %}<div class="empty">No assignments yet.</div>{% endif %}
@@ -581,7 +587,48 @@ window.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if(el) el.dispatchEvent(new Event('change'));
   });
+  toggleFileType(); // Initialize file type toggle
 });
+
+// FIX #1: Toggle quiz type between MCQ and external link
+function toggleQuizType() {
+    const type = document.getElementById('quiz_type_sel').value;
+    const mcqSection = document.getElementById('mcq-section');
+    const linkSection = document.getElementById('link-section');
+    const externalInput = document.getElementById('external_link_input');
+    
+    if (type === 'link') {
+        mcqSection.style.display = 'none';
+        linkSection.style.display = 'block';
+        externalInput.required = true;
+        document.getElementById('save-quiz-btn').textContent = '🔗 Save External Quiz';
+    } else {
+        mcqSection.style.display = 'block';
+        linkSection.style.display = 'none';
+        externalInput.required = false;
+        document.getElementById('save-quiz-btn').textContent = '🧠 Save Quiz';
+    }
+}
+
+// FIX #6: Toggle file upload vs URL input for books
+function toggleFileType() {
+    const fileType = document.querySelector('input[name="file_type"]:checked').value;
+    const fileArea = document.getElementById('file-upload-area');
+    const urlArea = document.getElementById('url-upload-area');
+    
+    if (fileType === 'book') {
+        fileArea.style.display = 'block';
+        urlArea.style.display = 'block';
+    } else {
+        fileArea.style.display = 'block';
+        urlArea.style.display = 'none';
+    }
+}
+
+// FIX #4: Toggle all sections for assignment
+function toggleAllSectionAssign(cb) {
+    document.querySelectorAll('.assign-sec-cb').forEach(c => c.checked = cb.checked);
+}
 </script>
 </body>
 </html>
