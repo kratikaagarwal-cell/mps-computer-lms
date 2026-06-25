@@ -824,14 +824,13 @@ def submit_assignment(assignment_id):
         db.session.commit()
     return redirect("/student")
 
-# FIX: Allow multiple quiz attempts - replace old score if new one is better
+# FIX #8: attempt_quiz uses proper standalone template (no base.html dependency)
 @app.route("/attempt_quiz/<int:quiz_id>", methods=["GET","POST"])
 def attempt_quiz(quiz_id):
     if "student_id" not in session: return redirect("/student")
     quiz = db.session.get(Quiz, quiz_id)
     if not quiz: return redirect("/student")
     if quiz.quiz_type == "link":
-        # Mark quiz done for external links
         student = db.session.get(Student, session["student_id"])
         cls = student.student_class if student else "6"
         prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls).first()
@@ -842,7 +841,6 @@ def attempt_quiz(quiz_id):
         db.session.commit()
         return redirect(quiz.external_link)
     
-    # Check if already attempted
     existing = QuizAttempt.query.filter_by(student_id=session["student_id"], quiz_id=quiz_id).first()
     
     if request.method == "POST":
@@ -850,16 +848,12 @@ def attempt_quiz(quiz_id):
         total = len(quiz.questions)
         
         if existing:
-            # FIX: Replace old score if new score is better
+            # UPDATE score if new is better
             if score > existing.score:
                 existing.score = score
                 existing.total = total
-                existing.attempted_at = now_str()
-            else:
-                # Keep existing score if new one is not better, but still update time
-                existing.attempted_at = now_str()
         else:
-            # FIX: Create new attempt (allow multiple attempts)
+            # CREATE new attempt
             db.session.add(QuizAttempt(student_id=session["student_id"], quiz_id=quiz_id,
                 score=score, total=total, attempted_at=now_str()))
         
@@ -871,29 +865,22 @@ def attempt_quiz(quiz_id):
             db.session.add(prog)
         prog.quiz_done = True; prog.updated_at = now_str()
         db.session.commit()
-        return render_template("quiz_score.html", score=score, total=total, quiz=quiz, is_retry=existing is not None)
-    
+        return render_template("quiz_score.html", score=score, total=total, quiz=quiz)
     return render_template("attempt_quiz.html", quiz=quiz)
 
-# FIX: play_game with proper error handling - allow replaying
+# FIX #8: play_game — game template is standalone, no base.html
 @app.route("/play_game/<int:game_id>")
 def play_game(game_id):
     if "student_id" not in session: return redirect("/student")
     try:
         game = db.session.get(Game, game_id)
-        if not game: 
-            return render_template("error.html", message="Game not found"), 404
-        
-        # Get student's existing score for this game (if any)
+        if not game: return redirect("/student")
         existing = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
-        
-        # Get leaderboard
         leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
-        
         return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard)
     except Exception as e:
-        print(f"Error in play_game: {str(e)}")
-        return render_template("error.html", message="Error loading game"), 500
+        print(f"play_game error: {e}")
+        return redirect("/student")
 
 @app.route("/save_game_score", methods=["POST"])
 def save_game_score():
@@ -947,51 +934,29 @@ def submit_feedback():
 # FIX #6: serve uploads inline (content-disposition: inline) to prevent download
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
-    """Serve uploaded files - handles PDFs, images, docs, etc."""
-    import mimetypes
-    import os
+    import mimetypes, os
     
-    # Security: prevent directory traversal
+    # Security check
     if ".." in filename or "/" in filename or "\\" in filename:
         return "Access Denied", 403
     
     upload_folder = app.config["UPLOAD_FOLDER"]
     file_path = os.path.join(upload_folder, filename)
     
-    # Verify file exists
-    if not os.path.exists(file_path):
-        # Create error.html if it doesn't exist, fall back to plain error
-        try:
-            return render_template("error.html", message=f"File '{filename}' not found"), 404
-        except:
-            return f"File not found: {filename}", 404
-    
-    if not os.path.isfile(file_path):
-        return "Not a file", 400
-    
-    # Get MIME type
-    mime_type, _ = mimetypes.guess_type(file_path)
-    if not mime_type:
-        mime_type = "application/octet-stream"
+    # Check file exists
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return f"<h1>File Not Found</h1><p>File: {filename}</p><a href='/'>Go Home</a>", 404
     
     try:
-        # For PDFs and images: open in browser (inline)
-        if mime_type in ["application/pdf"] or mime_type.startswith("image/"):
+        mime, _ = mimetypes.guess_type(filename)
+        if mime and (mime == "application/pdf" or mime.startswith("image/")):
             response = send_from_directory(upload_folder, filename)
             response.headers["Content-Disposition"] = "inline"
-            response.headers["Content-Type"] = mime_type
             return response
-        
-        # For other files: download
-        response = send_from_directory(upload_folder, filename, as_attachment=True)
-        response.headers["Content-Type"] = mime_type
-        return response
-        
-    except FileNotFoundError:
-        return "File not found", 404
+        return send_from_directory(upload_folder, filename, as_attachment=True)
     except Exception as e:
-        print(f"Error serving file {filename}: {str(e)}")
-        return f"Error loading file", 500
+        print(f"File serve error: {str(e)}")
+        return f"<h1>Error Loading File</h1><p>{str(e)}</p><a href='/'>Go Home</a>", 500
 
 # ─────────────────────────────────────────────
 # DB INIT
