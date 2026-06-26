@@ -831,6 +831,7 @@ def attempt_quiz(quiz_id):
     quiz = db.session.get(Quiz, quiz_id)
     if not quiz: return redirect("/student")
     if quiz.quiz_type == "link":
+        # Mark quiz done for external links
         student = db.session.get(Student, session["student_id"])
         cls = student.student_class if student else "6"
         prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls).first()
@@ -840,23 +841,12 @@ def attempt_quiz(quiz_id):
         prog.quiz_done = True; prog.updated_at = now_str()
         db.session.commit()
         return redirect(quiz.external_link)
-    
     existing = QuizAttempt.query.filter_by(student_id=session["student_id"], quiz_id=quiz_id).first()
-    
     if request.method == "POST":
         score = sum(1 for q in quiz.questions if request.form.get(f"q_{q.id}","").upper() == q.correct_option.upper())
         total = len(quiz.questions)
-        
-        if existing:
-            # UPDATE score if new is better
-            if score > existing.score:
-                existing.score = score
-                existing.total = total
-        else:
-            # CREATE new attempt
-            db.session.add(QuizAttempt(student_id=session["student_id"], quiz_id=quiz_id,
-                score=score, total=total, attempted_at=now_str()))
-        
+        db.session.add(QuizAttempt(student_id=session["student_id"], quiz_id=quiz_id,
+            score=score, total=total, attempted_at=now_str()))
         student = db.session.get(Student, session["student_id"])
         cls = student.student_class if student else "6"
         prog = ChapterProgress.query.filter_by(student_id=session["student_id"], chapter_no=quiz.chapter_no, student_class=cls).first()
@@ -872,15 +862,11 @@ def attempt_quiz(quiz_id):
 @app.route("/play_game/<int:game_id>")
 def play_game(game_id):
     if "student_id" not in session: return redirect("/student")
-    try:
-        game = db.session.get(Game, game_id)
-        if not game: return redirect("/student")
-        existing = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
-        leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
-        return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard)
-    except Exception as e:
-        print(f"play_game error: {e}")
-        return redirect("/student")
+    game = db.session.get(Game, game_id)
+    if not game: return redirect("/student")
+    existing    = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
+    leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
+    return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard)
 
 @app.route("/save_game_score", methods=["POST"])
 def save_game_score():
@@ -934,29 +920,17 @@ def submit_feedback():
 # FIX #6: serve uploads inline (content-disposition: inline) to prevent download
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
-    import mimetypes, os
-    
-    # Security check
-    if ".." in filename or "/" in filename or "\\" in filename:
-        return "Access Denied", 403
-    
-    upload_folder = app.config["UPLOAD_FOLDER"]
-    file_path = os.path.join(upload_folder, filename)
-    
-    # Check file exists
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        return f"<h1>File Not Found</h1><p>File: {filename}</p><a href='/'>Go Home</a>", 404
-    
-    try:
-        mime, _ = mimetypes.guess_type(filename)
-        if mime and (mime == "application/pdf" or mime.startswith("image/")):
-            response = send_from_directory(upload_folder, filename)
-            response.headers["Content-Disposition"] = "inline"
-            return response
-        return send_from_directory(upload_folder, filename, as_attachment=True)
-    except Exception as e:
-        print(f"File serve error: {str(e)}")
-        return f"<h1>Error Loading File</h1><p>{str(e)}</p><a href='/'>Go Home</a>", 500
+    import mimetypes
+    mime, _ = mimetypes.guess_type(filename)
+    # For PDFs and images, serve inline so browser opens them instead of downloading
+    if mime and (mime == "application/pdf" or mime.startswith("image/")):
+        from flask import send_from_directory, make_response
+        response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
+        response.headers["Content-Disposition"] = f"inline; filename={filename}"
+        response.headers["Content-Type"] = mime
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 # ─────────────────────────────────────────────
 # DB INIT
