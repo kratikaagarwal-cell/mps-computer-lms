@@ -592,21 +592,53 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // FIX #1: Toggle quiz type between MCQ and external link
 function toggleQuizType() {
+
     const type = document.getElementById('quiz_type_sel').value;
+
     const mcqSection = document.getElementById('mcq-section');
     const linkSection = document.getElementById('link-section');
+
+    const mcqInputs = mcqSection.querySelectorAll('input,select');
+
     const externalInput = document.getElementById('external_link_input');
-    
-    if (type === 'link') {
-        mcqSection.style.display = 'none';
-        linkSection.style.display = 'block';
-        externalInput.required = true;
-        document.getElementById('save-quiz-btn').textContent = '🔗 Save External Quiz';
-    } else {
-        mcqSection.style.display = 'block';
-        linkSection.style.display = 'none';
-        externalInput.required = false;
-        document.getElementById('save-quiz-btn').textContent = '🧠 Save Quiz';
+
+
+    if(type === 'link'){
+
+        mcqSection.style.display='none';
+        linkSection.style.display='block';
+
+
+        mcqInputs.forEach(function(input){
+            input.required=false;
+        });
+
+
+        externalInput.required=true;
+
+
+        document.getElementById('save-quiz-btn').innerHTML =
+        '🔗 Save External Quiz';
+
+
+    }else{
+
+
+        mcqSection.style.display='block';
+        linkSection.style.display='none';
+
+
+        mcqInputs.forEach(function(input){
+            input.required=true;
+        });
+
+
+        externalInput.required=false;
+
+
+        document.getElementById('save-quiz-btn').innerHTML =
+        '🧠 Save Quiz';
+
     }
 }
 
