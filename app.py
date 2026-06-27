@@ -3,10 +3,18 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import openpyxl
 import os
+from supabase import create_client
 
 app = Flask(__name__)
 app.secret_key = "mps_lms_secret_2025"
+SUPABASE_URL = "https://fxyyepynocnjegevvsbq.supabase.co/rest/v1/"
 
+SUPABASE_KEY = "sb_secret_ipr8gkcf3bg9BaEDttiEJw_KznLOQmr"
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL",
     "postgresql://postgres.fxyyepynocnjegevvsbq:Kratika%4012345@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
