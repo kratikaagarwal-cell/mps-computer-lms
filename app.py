@@ -651,6 +651,23 @@ def delete_assignment(id):
 
     return redirect("/teacher")
 @app.route("/assignment_results/<int:id>")
+@app.route("/assignment_submissions/<int:id>")
+def assignment_submissions(id):
+
+    if "teacher" not in session:
+        return redirect("/teacher_login")
+
+    assignment = Assignment.query.get_or_404(id)
+
+    submissions = AssignmentSubmission.query.filter_by(
+        assignment_id=id
+    ).all()
+
+    return render_template(
+        "assignment_submissions.html",
+        assignment=assignment,
+        submissions=submissions
+    )
 def assignment_results(id):
 
     if "teacher" not in session:
