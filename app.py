@@ -650,23 +650,37 @@ def delete_assignment(id):
     db.session.commit()
 
     return redirect("/teacher")
-@app.route("/assignment_results/<int:id>")
+
 @app.route("/assignment_submissions/<int:id>")
 def assignment_submissions(id):
 
-    if "teacher" not in session:
+    if "teacher" not in session and "admin" not in session:
         return redirect("/teacher_login")
 
     assignment = Assignment.query.get_or_404(id)
 
+    # get all students of that class and section
+    all_students = Student.query.filter_by(
+        student_class=assignment.student_class,
+        section=assignment.section
+    ).all()
+
+
+    # get submitted students
     submissions = AssignmentSubmission.query.filter_by(
         assignment_id=id
     ).all()
 
+
+    sel_class = assignment.student_class
+
+
     return render_template(
-        "assignment_submissions.html",
+        "assignment_submission.html",
         assignment=assignment,
-        submissions=submissions
+        all_students=all_students,
+        submissions=submissions,
+        sel_class=sel_class
     )
 def assignment_results(id):
 
