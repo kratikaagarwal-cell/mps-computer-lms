@@ -408,9 +408,6 @@ def upload_students():
 
         file.save(path)
 
-        added = 0
-        skipped = 0
-
         wb = openpyxl.load_workbook(path)
         ws = wb.active
 
@@ -418,6 +415,13 @@ def upload_students():
             str(cell.value).strip()
             for cell in ws[1]
         ]
+
+        existing_admissions = {
+            s.admission_no 
+            for s in Student.query.with_entities(Student.admission_no).all()
+        }
+
+        students_to_add = []
 
         for row in ws.iter_rows(min_row=2, values_only=True):
 
@@ -428,42 +432,28 @@ def upload_students():
             ).strip()
 
 
-            if admission == "":
-                continue
+            if admission and admission not in existing_admissions:
+
+                students_to_add.append(
+                    Student(
+                        admission_no=admission,
+                        student_name=str(data.get("Student_Name","")),
+                        dob=str(data.get("DOB","")),
+                        student_class=str(data.get("Class","")),
+                        section=str(data.get("Section","")),
+                        roll_no=str(data.get("Roll_No","")),
+                        parent_mobile=str(data.get("Parent_Mobile",""))
+                    )
+                )
 
 
-            existing = Student.query.filter_by(
-                admission_no=admission
-            ).first()
-
-
-            if existing:
-                skipped += 1
-                continue
-
-
-            student = Student(
-                admission_no=admission,
-                student_name=str(data.get("Student_Name","")),
-                dob=str(data.get("DOB","")),
-                student_class=str(data.get("Class","")),
-                section=str(data.get("Section","")),
-                roll_no=str(data.get("Roll_No","")),
-                parent_mobile=str(data.get("Parent_Mobile",""))
-            )
-
-
-            db.session.add(student)
-            added += 1
-
-
+        db.session.bulk_save_objects(students_to_add)
         db.session.commit()
 
 
         return render_template(
             "success.html",
-            total=added,
-            skipped=skipped,
+            total=len(students_to_add),
             filename=file.filename
         )
 
