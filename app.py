@@ -7,7 +7,7 @@ from supabase import create_client
 
 app = Flask(__name__)
 app.secret_key = "mps_lms_secret_2025"
-SUPABASE_URL = "https://fxyyepynocnjegevvsbq.supabase.co/rest/v1/"
+SUPABASE_URL = "https://fxyyepynocnjegevvsbq.supabase.co"
 
 SUPABASE_KEY = "sb_secret_ipr8gkcf3bg9BaEDttiEJw_KznLOQmr"
 
