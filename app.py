@@ -635,10 +635,17 @@ def create_assignment():
 
 @app.route("/delete_assignment/<int:id>")
 def delete_assignment(id):
-    if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
-    a = db.session.get(Assignment, id)
-    sel_class = a.student_class if a else "6"
-    if a: db.session.delete(a); db.session.commit()
+
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+
+    a = Assignment.query.get_or_404(id)
+
+    sel_class = a.student_class
+
+    db.session.delete(a)
+    db.session.commit()
+
     return redirect(f"/teacher?class={sel_class}")
 
 @app.route("/create_quiz", methods=["POST"])
