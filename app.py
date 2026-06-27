@@ -498,58 +498,94 @@ def teacher():
 
 @app.route("/upload_notes", methods=["POST"])
 def upload_notes():
-    if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
+    if "teacher" not in session and "admin" not in session: 
+        return redirect("/teacher_login")
+    
     file = request.files.get("file")
-    chapter    = request.form["chapter"]
+    chapter = request.form["chapter"]
     chapter_no = int(request.form.get("chapter_no", 0))
-    sel_class  = request.form.get("student_class","6")
-    # FIX #1: support multiple sections via checkbox list
+    sel_class = request.form.get("student_class","6")
+    
     sections_selected = request.form.getlist("section")
     if not sections_selected:
         sections_selected = [request.form.get("section", "All Sections")]
-    description= request.form.get("description","")
-    file_type  = request.form.get("file_type","notes")
+    
+    description = request.form.get("description","")
+    file_type = request.form.get("file_type","notes")
     external_url = request.form.get("external_url", "").strip()
 
-    # Save file once if provided
-    safe_name = ""
+    # FIX: Initialize variables
+    public_url = ""
+    original_filename = ""
+    
+    # Handle file upload
     if file and file.filename:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
         file_bytes = file.read()
+        original_filename = file.filename
+        
+        try:
+            # Upload to Supabase
+            supabase.storage.from_("lms-files").upload(safe_name, file_bytes)
+            
+            # Get public URL
+            public_url = supabase.storage.from_("lms-files").get_public_url(safe_name)
+            
+            # FIX: Ensure URL is complete and properly formatted
+            if not public_url or public_url.startswith('Error'):
+                # Manually construct URL if get_public_url fails
+                public_url = f"https://fxyyepynocnjegevvsbq.supabase.co/storage/v1/object/public/lms-files/{safe_name}"
+            
+            print(f"✅ File uploaded: {safe_name}")
+            print(f"✅ Public URL: {public_url}")
+            
+        except Exception as e:
+            print(f"❌ Supabase upload error: {e}")
+            return redirect(f"/teacher?class={sel_class}&error=upload_failed")
+    
+    # Handle external URL (for books/resources)
+    if external_url and not public_url:
+        public_url = external_url
 
-        supabase.storage.from_("lms-files").upload(
-        safe_name,
-        file_bytes
-        )
+    # Validate we have a URL
+    if not public_url:
+        print(f"❌ No URL generated")
+        return redirect(f"/teacher?class={sel_class}&error=no_file_or_url")
 
-        public_url = supabase.storage.from_("lms-files").get_public_url(
-        safe_name
-        )
-
-    # Create one Note record per selected section
+    # Create note record for each selected section
     for sec in sections_selected:
-        db.session.add(Note(
-            filename=public_url,
-            original_name=file.filename if file and file.filename else "",
-            chapter=chapter,
-            chapter_no=chapter_no,
-            student_class=sel_class,
-            section=sec,
-            description=description,
-            file_type=file_type,
-            # FIX #3: store external URL
-            external_url=external_url,
-            uploaded_at=now_str()
-        ))
+        try:
+            note = Note(
+                filename=public_url,  # ✅ Full URL stored here
+                original_name=original_filename,
+                chapter=chapter,
+                chapter_no=chapter_no,
+                student_class=sel_class,
+                section=sec,
+                description=description,
+                file_type=file_type,
+                external_url=external_url,
+                uploaded_at=now_str()
+            )
+            db.session.add(note)
+            print(f"✅ Note created for section: {sec}")
+            
+        except Exception as e:
+            print(f"❌ Database error: {e}")
+            db.session.rollback()
+            return redirect(f"/teacher?class={sel_class}&error=db_failed")
 
     db.session.commit()
 
+    # Update chapter config
     cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
     if cfg:
         if file_type == "notes": cfg.has_notes = True
-        if file_type == "book":  cfg.has_book  = True
+        if file_type == "book": cfg.has_book = True
         db.session.commit()
+    
+    print(f"✅ Upload complete! URL: {public_url}")
     return redirect(f"/teacher?class={sel_class}")
 
 @app.route("/delete_note/<int:id>")
