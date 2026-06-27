@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment Results</title>
+</head>
+
+<body>
+
+<h2>
+📄 {{ assignment.title }} - Submissions
+</h2>
+
+<table border="1" cellpadding="10">
+
+<tr>
+<th>Student</th>
+<th>File</th>
+<th>Date</th>
+</tr>
+
+
+{% for s in submissions %}
+
+<tr>
+
+<td>
+{{ s.student.name }}
+</td>
+
+<td>
+<a href="/uploads/{{s.file_name}}" target="_blank">
+View
+</a>
+</td>
+
+<td>
+{{s.submitted_at}}
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+<td colspan="3">
+No submissions yet
+</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+
+</body>
+</html>
