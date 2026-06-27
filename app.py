@@ -390,25 +390,73 @@ def delete_student(id):
 def upload_students():
     if "admin" not in session: return redirect("/login")
     if request.method == "POST":
-        file = request.files["file"]
-        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-        path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        file.save(path)
-        added = 0
-        wb = openpyxl.load_workbook(path)
-        ws = wb.active
-        headers = [cell.value for cell in ws[1]]
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            data = dict(zip(headers, row))
-            if not Student.query.filter_by(admission_no=str(data["Admission_No"])).first():
-                db.session.add(Student(
-                    admission_no=str(data["Admission_No"]), student_name=data["Student_Name"],
-                    dob=str(data["DOB"]), student_class=str(data["Class"]),
-                    section=str(data["Section"]), roll_no=str(data["Roll_No"]),
-                    parent_mobile=str(data["Parent_Mobile"])))
-                added += 1
-        db.session.commit()
-        return render_template("success.html", total=added, filename=file.filename)
+        try:
+            file = request.files["file"]
+            if not file or file.filename == '':
+                return "No file selected", 400
+            
+            os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+            path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+            file.save(path)
+            
+            added = 0
+            wb = openpyxl.load_workbook(path)
+            ws = wb.active
+            
+            # Process each row starting from row 2
+            for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 1):
+                try:
+                    # Extract values - handle None values
+                    admission_no = str(row[0]).strip() if row[0] else ""
+                    student_name = str(row[1]).strip() if row[1] else ""
+                    dob = str(row[2]).split()[0] if row[2] else ""  # Extract date part from datetime
+                    student_class = str(row[3]).strip() if row[3] else ""
+                    section = str(row[4]).strip() if row[4] else ""
+                    roll_no = str(row[5]).strip() if row[5] else ""
+                    parent_mobile = str(row[6]).strip() if row[6] else ""
+                    
+                    # Skip empty rows
+                    if not admission_no or admission_no == "None":
+                        continue
+                    
+                    # Check if student already exists
+                    existing = Student.query.filter_by(admission_no=admission_no).first()
+                    if not existing:
+                        student = Student(
+                            admission_no=admission_no,
+                            student_name=student_name,
+                            dob=dob,
+                            student_class=student_class,
+                            section=section,
+                            roll_no=roll_no,
+                            parent_mobile=parent_mobile)
+                        db.session.add(student)
+                        added += 1
+                        print(f"Adding student: {admission_no} - {student_name}")
+                    else:
+                        print(f"Student already exists: {admission_no}")
+                        
+                except Exception as e:
+                    print(f"Error in row {row_num}: {str(e)}")
+                    continue
+            
+            # Commit all at once
+            try:
+                db.session.commit()
+                print(f"Successfully added {added} students")
+            except Exception as e:
+                print(f"Database commit error: {str(e)}")
+                db.session.rollback()
+                return f"<h1>Database Error</h1><p>{str(e)}</p><a href='/admin'>Go Back</a>", 500
+            
+            return render_template("success.html", total=added, filename=file.filename)
+            
+        except Exception as e:
+            print(f"Upload error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return f"<h1>Error uploading file</h1><p>{str(e)}</p><a href='/admin'>Go Back</a>", 500
+    
     return render_template("upload.html")
 
 # ─────────────────────────────────────────────
