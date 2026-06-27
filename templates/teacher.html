@@ -308,7 +308,7 @@ tbody tr:hover td{background:#f7fffe;}
           <td><span class="badge bg-blue">{{ n.section }}</span></td>
           <td style="color:#777;font-size:11px;">{{ n.description or '—' }}</td>
           <td style="color:#aaa;font-size:11px;">{{ n.uploaded_at or '—' }}</td>
-          <td><a href="/uploads/{{ n.filename }}" class="btn btn-teal btn-sm" target="_blank" title="View">👁️</a> <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+          <td><a href="{% if n.filename.startswith('http') %}{{ n.filename }}{% elif n.external_url %}{{ n.external_url }}{% else %}/uploads/{{ n.filename }}{% endif %}" class="btn btn-teal btn-sm" target="_blank" title="View">👁️</a> <a href="/delete_note/{{ n.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
         </tr>{% endfor %}</tbody>
       </table>
       {% else %}<div class="empty">No notes uploaded yet.</div>{% endif %}
