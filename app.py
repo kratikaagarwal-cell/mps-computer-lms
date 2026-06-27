@@ -530,7 +530,7 @@ def upload_notes():
     # Create one Note record per selected section
     for sec in sections_selected:
         db.session.add(Note(
-            filename=safe_name,
+            filename=public_url,
             original_name=file.filename if file and file.filename else "",
             chapter=chapter,
             chapter_no=chapter_no,
