@@ -228,7 +228,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             </div>
             <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
               <!-- FIX #6: Read only, no download -->
-              <a href="/uploads/{{ n.filename }}" class="btn btn-blue" target="_blank">👁 Read</a>
+              <a href="{{ n.filename }}" class="btn btn-blue" target="_blank">👁 Read</a>
               {% set prog = progress_map.get(n.chapter_no) %}
               {% if prog and prog.notes_done %}<span class="badge bg-green">✓ Read</span>{% endif %}
             </div>
