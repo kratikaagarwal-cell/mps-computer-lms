@@ -268,7 +268,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             <!-- FIX #3: open external URL if set, otherwise serve file inline; FIX #6: read-only -->
             {% if b.filename %}
 
-            <a href="/uploads/{{ b.filename }}"
+            <a href="{{ b.filename }}"
             target="_blank"
             class="btn btn-teal">
             📖 Open Book
