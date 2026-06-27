@@ -639,10 +639,12 @@ def delete_assignment(id):
     if "teacher" not in session and "admin" not in session:
         return redirect("/teacher_login")
 
-    assignment = Assignment.query.get(id)
+    assignment = Assignment.query.get_or_404(id)
 
-    if not assignment:
-        return redirect("/teacher")
+    # delete related submissions first
+    AssignmentSubmission.query.filter_by(
+        assignment_id=id
+    ).delete()
 
     db.session.delete(assignment)
     db.session.commit()
