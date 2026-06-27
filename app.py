@@ -516,7 +516,16 @@ def upload_notes():
     if file and file.filename:
         os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], safe_name))
+        file_bytes = file.read()
+
+        supabase.storage.from_("lms-files").upload(
+        safe_name,
+        file_bytes
+        )
+
+        public_url = supabase.storage.from_("lms-files").get_public_url(
+        safe_name
+        )
 
     # Create one Note record per selected section
     for sec in sections_selected:
