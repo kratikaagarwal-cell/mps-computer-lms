@@ -5,3 +5,7 @@ openpyxl==3.1.5
 Werkzeug==3.0.3
 gunicorn
 psycopg2-binary
+click>=8.0
+itsdangerous>=2.0
+Jinja2>=3.0
+MarkupSafe>=2.0
