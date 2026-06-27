@@ -174,7 +174,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             {% if cfg and cfg.has_video %}
               {% set ch_videos = videos|selectattr('chapter_no','eq',ch.no)|list %}
               {% if ch_videos %}
-                <a href="/mark_video/{{ ch.no }}" class="video-link" target="_blank" onclick="setTimeout(()=>location.reload(),1500)">🎬 Watch Video</a>
+              {% for v in ch_videos %}
+              
+              <a href="{{ v.youtube_url }}"
+              target="_blank"
+              class="video-link"
+              onclick="markVideo({{ch.no}})">
+              🎬 Watch Video
+              </a>
+              
+              {% endfor %}
               {% endif %}
               <span class="ch-task {% if prog and prog.video_done %}done{% else %}pending{% endif %}">🎬 {% if prog and prog.video_done %}✓{% else %}○{% endif %} Video</span>
             {% endif %}
@@ -257,10 +266,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           </div>
           <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
             <!-- FIX #3: open external URL if set, otherwise serve file inline; FIX #6: read-only -->
-            {% if b.external_url %}
-              <a href="{{ b.external_url }}" class="btn btn-teal" target="_blank">📖 Open Book</a>
-            {% elif b.filename %}
-              <a href="/uploads/{{ b.filename }}" class="btn btn-teal" target="_blank">📖 Open Book</a>
+            {% if b.filename %}
+
+            <a href="/uploads/{{ b.filename }}"
+            target="_blank"
+            class="btn btn-teal">
+            📖 Open Book
+            </a>
+            
             {% endif %}
             {% set prog = progress_map.get(b.chapter_no) %}
             {% if not (prog and prog.book_done) %}
