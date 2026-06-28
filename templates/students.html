@@ -19,21 +19,21 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
 .btn-blue { background: #0f4c81; }
 .btn-red { background: #ef4444; }
 .btn-sm { padding: 5px 12px; font-size: 11px; }
-
 .card { background: white; border-radius: 16px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 .card-title { font-size: 15px; font-weight: 700; color: #0f4c81; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eef5; display: flex; justify-content: space-between; align-items: center; }
-
 table { width: 100%; border-collapse: collapse; }
 thead th { background: #0f4c81; color: white; padding: 11px 14px; text-align: left; font-size: 12px; }
 thead th:first-child { border-radius: 8px 0 0 0; }
 thead th:last-child { border-radius: 0 8px 0 0; }
 tbody td { padding: 10px 14px; border-bottom: 1px solid #f0f3f8; font-size: 13px; }
 tbody tr:hover td { background: #f7fffe; }
-
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
 .bg-green { background: #d1fae5; color: #065f46; }
 .bg-blue { background: #dbeafe; color: #1e40af; }
 .empty { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
+.bulk-bar { background: white; border-radius: 14px; padding: 16px 20px; margin-bottom: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid #ef4444; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bulk-bar span { font-size: 14px; font-weight: 600; color: #ef4444; }
+.bulk-bar select { padding: 9px 13px; border: 1.5px solid #dde3ec; border-radius: 10px; font-size: 13px; background: #fafbfc; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -62,6 +62,21 @@ tbody tr:hover td { background: #f7fffe; }
     <button class="btn btn-blue" type="submit">Search</button>
     <a href="/students" class="btn" style="background:#e2e8f0;color:#555;">Clear</a>
   </form>
+
+  <!-- Bulk delete by section -->
+  <div class="bulk-bar">
+    <span>🗑 Delete entire section</span>
+    <form method="POST" action="/delete_section" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"
+          onsubmit="return confirm('⚠️ This will permanently delete ALL students in ' + this.del_section.value + ' including all their progress, quiz attempts and game scores. This CANNOT be undone. Are you absolutely sure?')">
+      <select name="del_section" required>
+        <option value="">-- Select section --</option>
+        {% for sec in sections %}
+        <option>{{ sec }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-red">Delete Section</button>
+    </form>
+  </div>
 
   <div class="card">
     <div class="card-title">
