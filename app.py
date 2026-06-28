@@ -150,6 +150,9 @@ class GamePair(db.Model):
     term = db.Column(db.String(200))
     definition = db.Column(db.String(200))
 
+    def to_dict(self):
+        return {"id": self.id, "term": self.term, "definition": self.definition}
+
 class GameScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
@@ -1023,7 +1026,8 @@ def play_game(game_id):
     if not game: return redirect("/student")
     existing    = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
     leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
-    return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard)
+    pairs_data  = [p.to_dict() for p in game.pairs]
+    return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard, pairs_data=pairs_data)
 
 @app.route("/save_game_score", methods=["POST"])
 def save_game_score():
