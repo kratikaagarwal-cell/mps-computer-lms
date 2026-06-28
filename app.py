@@ -141,6 +141,7 @@ class Game(db.Model):
     student_class = db.Column(db.String(10), default="6")
     section = db.Column(db.String(20))
     created_at = db.Column(db.String(30), default="")
+    game_type = db.Column(db.String(30), default="matching")
     pairs = db.relationship("GamePair", backref="game", cascade="all, delete-orphan")
     scores = db.relationship("GameScore", backref="game", cascade="all, delete-orphan")
 
@@ -795,7 +796,8 @@ def create_game():
     sel_class  = request.form.get("student_class","6")
     game = Game(title=request.form["title"], chapter=request.form["chapter"],
         chapter_no=chapter_no, student_class=sel_class,
-        section=request.form["section"], created_at=now_str())
+        section=request.form["section"], created_at=now_str(),
+        game_type=request.form.get("game_type", "matching"))
     db.session.add(game); db.session.flush()
     terms = request.form.getlist("term")
     definitions = request.form.getlist("definition")
@@ -1027,7 +1029,8 @@ def play_game(game_id):
     existing    = GameScore.query.filter_by(student_id=session["student_id"], game_id=game_id).first()
     leaderboard = GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all()
     pairs_data  = [p.to_dict() for p in game.pairs]
-    return render_template("play_game.html", game=game, existing=existing, leaderboard=leaderboard, pairs_data=pairs_data)
+    template = "play_word_cloud.html" if getattr(game, "game_type", "matching") == "word_cloud" else "play_game.html"
+    return render_template(template, game=game, existing=existing, leaderboard=leaderboard, pairs_data=pairs_data)
 
 @app.route("/save_game_score", methods=["POST"])
 def save_game_score():
