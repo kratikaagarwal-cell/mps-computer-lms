@@ -425,6 +425,25 @@ def delete_student(id):
     if s: db.session.delete(s); db.session.commit()
     return redirect("/students")
 
+@app.route("/delete_section", methods=["POST"])
+def delete_section():
+    if "admin" not in session: return redirect("/login")
+    sec = request.form.get("del_section", "").strip()
+    if not sec:
+        return redirect("/students")
+    students = Student.query.filter_by(section=sec).all()
+    for s in students:
+        # delete all related data first
+        ChapterProgress.query.filter_by(student_id=s.id).delete()
+        AssignmentSubmission.query.filter_by(student_id=s.id).delete()
+        QuizAttempt.query.filter_by(student_id=s.id).delete()
+        GameScore.query.filter_by(student_id=s.id).delete()
+        StudentQuery.query.filter_by(student_id=s.id).delete()
+        Feedback.query.filter_by(student_id=s.id).delete()
+        db.session.delete(s)
+    db.session.commit()
+    return redirect("/students")
+
 @app.route("/upload_students", methods=["GET","POST"])
 def upload_students():
 
