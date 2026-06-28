@@ -1133,6 +1133,12 @@ def serve_upload(filename):
 with app.app_context():
     os.makedirs("uploads", exist_ok=True)
     db.create_all()
+    # Migration: add game_type column if it does not exist yet (PostgreSQL safe)
+    try:
+        db.session.execute(db.text("ALTER TABLE game ADD COLUMN game_type VARCHAR(30) DEFAULT 'matching'"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()  # column already exists — safe to ignore
     if Admin.query.count() == 0:
         db.session.add(Admin(username="admin", password="1234")); db.session.commit()
     if Teacher.query.count() == 0:
