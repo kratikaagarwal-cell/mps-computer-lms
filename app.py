@@ -526,19 +526,17 @@ def upload_notes():
         original_filename = file.filename
         
         try:
-            # Upload to Supabase
+            # Upload to Supabase (store in cloud)
             supabase.storage.from_("lms-files").upload(safe_name, file_bytes)
             
-            # Get public URL
-            public_url = supabase.storage.from_("lms-files").get_public_url(safe_name)
+            # FIX: Store only filename (not full URL) like assignments do
+            # This makes notes use /uploads/ route through Flask
+            # Just like assignments, which work fine!
+            public_url = safe_name
             
-            # FIX: Ensure URL is complete and properly formatted
-            if not public_url or public_url.startswith('Error'):
-                # Manually construct URL if get_public_url fails
-                public_url = f"https://fxyyepynocnjegevvsbq.supabase.co/storage/v1/object/public/lms-files/{safe_name}"
-            
-            print(f"✅ File uploaded: {safe_name}")
-            print(f"✅ Public URL: {public_url}")
+            print(f"✅ File uploaded to Supabase: {safe_name}")
+            print(f"✅ Stored as filename: {public_url}")
+            print(f"✅ Will be accessed via: /uploads/{public_url}")
             
         except Exception as e:
             print(f"❌ Supabase upload error: {e}")
@@ -1081,15 +1079,46 @@ def submit_feedback():
 def serve_upload(filename):
     import mimetypes
     mime, _ = mimetypes.guess_type(filename)
-    # For PDFs and images, serve inline so browser opens them instead of downloading
-    if mime and (mime == "application/pdf" or mime.startswith("image/")):
-        from flask import send_from_directory, make_response
-        response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
-        response.headers["Content-Disposition"] = f"inline; filename={filename}"
-        response.headers["Content-Type"] = mime
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        return response
-    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+    
+    # Get MIME type
+    if not mime:
+        mime = "application/octet-stream"
+    
+    try:
+        # First try local filesystem (for assignments)
+        local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        if os.path.exists(local_path):
+            from flask import send_from_directory, make_response
+            response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
+            response.headers["Content-Disposition"] = f"inline; filename={filename}"
+            response.headers["Content-Type"] = mime
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            print(f"✅ Served from local: {filename}")
+            return response
+        
+        # If not local, try Supabase (for notes)
+        try:
+            file_data = supabase.storage.from_("lms-files").download(filename)
+            from flask import send_file
+            import io
+            
+            response = send_file(
+                io.BytesIO(file_data),
+                mimetype=mime,
+                as_attachment=False,  # inline - display in browser
+                download_name=filename
+            )
+            response.headers["Content-Disposition"] = f"inline; filename={filename}"
+            print(f"✅ Served from Supabase: {filename}")
+            return response
+        
+        except Exception as supabase_error:
+            print(f"❌ File not in Supabase: {supabase_error}")
+            return f"File not found: {filename}", 404
+    
+    except Exception as e:
+        print(f"❌ Error serving file {filename}: {e}")
+        return f"Error: {str(e)}", 500
 
 # ─────────────────────────────────────────────
 # DB INIT
