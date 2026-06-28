@@ -322,8 +322,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
         {% for g in games %}
         {% set gs = game_scores.get(g.id) %}
         <div class="game-card {% if gs %}played{% endif %}">
-          <div style="font-weight:700;color:#0f4c81;font-size:14px;margin-bottom:4px;">🎮 {{ g.title }}</div>
-          <div style="font-size:12px;color:#888;margin-bottom:10px;">{{ g.chapter }} · Sec {{ g.section }} · {{ g.pairs|length }} word pairs</div>
+          <div style="font-weight:700;color:#0f4c81;font-size:14px;margin-bottom:4px;">{% if g.game_type=='word_cloud' %}☁️{% else %}🃏{% endif %} {{ g.title }}</div>
+          <div style="font-size:12px;color:#888;margin-bottom:10px;">{{ g.chapter }} · Sec {{ g.section }} · {{ g.pairs|length }} pairs · {% if g.game_type=='word_cloud' %}Word Cloud Typing{% else %}Matching Pairs{% endif %}</div>
           {% if gs %}
             <div style="display:flex;align-items:center;gap:12px;">
               <div><div style="font-size:22px;font-weight:800;color:#10b981;">{{ gs.score }} pts</div><div style="font-size:11px;color:#888;">Best Score · {{ gs.time_seconds }}s</div></div>
