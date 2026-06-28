@@ -1,29 +1,56 @@
 from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
 from datetime import datetime
 import openpyxl
 import os
 from supabase import create_client
 
 app = Flask(__name__)
-app.secret_key = "mps_lms_secret_2025"
-SUPABASE_URL = "https://fxyyepynocnjegevvsbq.supabase.co"
 
-SUPABASE_KEY = "sb_secret_ipr8gkcf3bg9BaEDttiEJw_KznLOQmr"
+# ── Secrets: always loaded from environment variables ──────────────────────────
+# Never put real values here. Set them in your hosting platform's env settings.
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
 
-supabase = create_client(
-    SUPABASE_URL,
-    SUPABASE_KEY
-)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://postgres.fxyyepynocnjegevvsbq:Kratika%4012345@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
-)
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL and SUPABASE_KEY environment variables must be set.")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable must be set.")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
+# ── Database connection pool tuned for 1000+ concurrent students ───────────────
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,       # drop stale connections automatically
+    "pool_size": 20,             # keep 20 connections open at all times
+    "max_overflow": 40,          # allow up to 40 extra connections at peak
+    "pool_timeout": 30,          # wait max 30s for a free connection
+    "pool_recycle": 1800,        # recycle connections every 30 min
+}
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
 
+# ── Simple in-process cache (upgrade to Redis for multi-server deployments) ────
+app.config["CACHE_TYPE"] = "SimpleCache"
+app.config["CACHE_DEFAULT_TIMEOUT"] = 60   # 60-second TTL for dashboard queries
+cache = Cache(app)
+
 db = SQLAlchemy(app)
+
+def _student_cache_key(student_id):
+    """Cache key scoped per student so invalidation is surgical."""
+    return f"student_dashboard_{student_id}"
+
+def invalidate_student_cache(student_id):
+    """Call this whenever a student's progress/data changes."""
+    cache.delete(_student_cache_key(student_id))
 
 # ─────────────────────────────────────────────
 # MODELS
@@ -868,6 +895,12 @@ def student_portal():
         session.pop("student_id", None)
         return redirect("/student")
 
+    # ── Serve cached dashboard data if fresh (avoids 8 DB queries per load) ──
+    cache_key = _student_cache_key(student.id)
+    cached = cache.get(cache_key)
+    if cached:
+        return render_template("student.html", **cached)
+
     cls  = student.student_class
     sec  = student.section
     CHAPTERS = ALL_CHAPTERS.get(cls, ALL_CHAPTERS["6"])
@@ -892,7 +925,6 @@ def student_portal():
     submitted_ids     = {s.assignment_id: s.status for s in AssignmentSubmission.query.filter_by(student_id=student.id).all()}
     attempted_quiz_ids= {a.quiz_id: a for a in QuizAttempt.query.filter_by(student_id=student.id).all()}
     game_scores       = {s.game_id: s for s in GameScore.query.filter_by(student_id=student.id).all()}
-    # FIX #9: track queries submitted (not feedback)
     queries_done      = {q.chapter_no for q in StudentQuery.query.filter_by(student_id=student.id, student_class=cls).all()}
     student_queries   = StudentQuery.query.filter_by(student_id=student.id, student_class=cls).order_by(StudentQuery.id.desc()).all()
 
@@ -906,7 +938,7 @@ def student_portal():
     completed   = sum(1 for p in chapter_pcts.values() if p == 100)
     in_progress = sum(1 for p in chapter_pcts.values() if 0 < p < 100)
 
-    return render_template("student.html",
+    ctx = dict(
         student=student, chapters=CHAPTERS, notes=notes, books=books,
         quizzes=quizzes, assignments=assignments, games=games, videos=videos,
         progress_map=progs, submitted_ids=submitted_ids,
@@ -916,6 +948,9 @@ def student_portal():
         chapter_pcts=chapter_pcts, completed=completed,
         in_progress=in_progress, total_chapters=len(CHAPTERS),
         student_class=cls)
+
+    cache.set(cache_key, ctx, timeout=60)   # cache for 60 seconds
+    return render_template("student.html", **ctx)
 
 @app.route("/student_login", methods=["POST"])
 def student_login():
@@ -948,6 +983,7 @@ def mark_video(chapter_no):
         db.session.add(prog)
     prog.video_done = True; prog.updated_at = now_str()
     db.session.commit()
+    invalidate_student_cache(session["student_id"])
     return redirect("/student")
 
 # FIX #7: mark_notes accepts both GET and POST (was returning 405)
@@ -962,6 +998,7 @@ def mark_notes(chapter_no):
         db.session.add(prog)
     prog.notes_done = True; prog.updated_at = now_str()
     db.session.commit()
+    invalidate_student_cache(session["student_id"])
     return redirect("/student")
 
 @app.route("/mark_book/<int:chapter_no>", methods=["GET","POST"])
@@ -975,6 +1012,7 @@ def mark_book(chapter_no):
         db.session.add(prog)
     prog.book_done = True; prog.updated_at = now_str()
     db.session.commit()
+    invalidate_student_cache(session["student_id"])
     return redirect("/student")
 
 @app.route("/submit_assignment/<int:assignment_id>")
@@ -984,6 +1022,7 @@ def submit_assignment(assignment_id):
         db.session.add(AssignmentSubmission(student_id=session["student_id"],
             assignment_id=assignment_id, status="submitted", submitted_at=now_str()))
         db.session.commit()
+        invalidate_student_cache(session["student_id"])
     return redirect("/student")
 
 # FIX #8: attempt_quiz uses proper standalone template (no base.html dependency)
@@ -1017,6 +1056,7 @@ def attempt_quiz(quiz_id):
             db.session.add(prog)
         prog.quiz_done = True; prog.updated_at = now_str()
         db.session.commit()
+        invalidate_student_cache(session["student_id"])
         return render_template("quiz_score.html", score=score, total=total, quiz=quiz)
     return render_template("attempt_quiz.html", quiz=quiz)
 
@@ -1056,6 +1096,7 @@ def save_game_score():
         db.session.add(prog)
     prog.game_done = True; prog.updated_at = now_str()
     db.session.commit()
+    invalidate_student_cache(session["student_id"])
     leaderboard = []
     for s in GameScore.query.filter_by(game_id=game_id).order_by(GameScore.score.desc(), GameScore.time_seconds).limit(10).all():
         leaderboard.append({"name": s.student.student_name, "score": s.score, "time": s.time_seconds})
@@ -1074,6 +1115,7 @@ def submit_query():
         comment=request.form.get("comment",""),
         submitted_at=now_str()))
     db.session.commit()
+    invalidate_student_cache(session["student_id"])
     return redirect("/student")
 
 # Keep old feedback endpoint for backward compatibility
@@ -1081,51 +1123,33 @@ def submit_query():
 def submit_feedback():
     return submit_query()
 
-# FIX #6: serve uploads inline (content-disposition: inline) to prevent download
+# ── File serving: redirect to Supabase CDN instead of proxying through Flask ──
+# This means your server only issues a 302 redirect; Supabase CDN delivers the
+# actual file. Signed URLs expire after 1 hour (3600 seconds).
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
     import mimetypes
-    mime, _ = mimetypes.guess_type(filename)
-    
-    # Get MIME type
-    if not mime:
-        mime = "application/octet-stream"
-    
+    local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+    # Assignments are stored locally — serve them directly (they're small)
+    if os.path.exists(local_path):
+        mime, _ = mimetypes.guess_type(filename)
+        from flask import make_response
+        response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
+        response.headers["Content-Disposition"] = f"inline; filename={filename}"
+        response.headers["Content-Type"] = mime or "application/octet-stream"
+        return response
+
+    # Notes/books live in Supabase storage → redirect to signed CDN URL
     try:
-        # First try local filesystem (for assignments)
-        local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        if os.path.exists(local_path):
-            from flask import send_from_directory, make_response
-            response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
-            response.headers["Content-Disposition"] = f"inline; filename={filename}"
-            response.headers["Content-Type"] = mime
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            print(f"✅ Served from local: {filename}")
-            return response
-        
-        # If not local, try Supabase (for notes)
-        try:
-            file_data = supabase.storage.from_("lms-files").download(filename)
-            from flask import send_file
-            import io
-            
-            response = send_file(
-                io.BytesIO(file_data),
-                mimetype=mime,
-                as_attachment=False,  # inline - display in browser
-                download_name=filename
-            )
-            response.headers["Content-Disposition"] = f"inline; filename={filename}"
-            print(f"✅ Served from Supabase: {filename}")
-            return response
-        
-        except Exception as supabase_error:
-            print(f"❌ File not in Supabase: {supabase_error}")
-            return f"File not found: {filename}", 404
-    
+        result = supabase.storage.from_("lms-files").create_signed_url(filename, 3600)
+        signed_url = result.get("signedURL") or result.get("signedUrl", "")
+        if signed_url:
+            return redirect(signed_url)
+        return f"File not found: {filename}", 404
     except Exception as e:
-        print(f"❌ Error serving file {filename}: {e}")
-        return f"Error: {str(e)}", 500
+        print(f"❌ Supabase signed URL error for {filename}: {e}")
+        return f"File not found: {filename}", 404
 
 # ─────────────────────────────────────────────
 # DB INIT
@@ -1150,4 +1174,6 @@ with app.app_context():
     db.session.commit()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # ⚠️  Development only. In production, run with gunicorn:
+    # gunicorn --workers 4 --threads 4 --timeout 60 -b 0.0.0.0:5000 app:app
+    app.run(debug=False)
