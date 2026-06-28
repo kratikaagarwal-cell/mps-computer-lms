@@ -1,31 +1,74 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-4">
-  <h3>🏆 Leaderboard — {{ game.title }}</h3>
-  <p class="text-muted">{{ game.chapter }} | {{ game.section }}</p>
-  {% if scores %}
-  <table class="table table-bordered table-hover mt-3">
-    <thead class="table-dark">
-      <tr><th>#</th><th>Student</th><th>Admission No</th><th>Score</th><th>Time</th><th>Played At</th></tr>
-    </thead>
-    <tbody>
-      {% for s in scores %}
-      <tr>
-        <td>
-          {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
-        </td>
-        <td><strong>{{ s.student.student_name }}</strong></td>
-        <td>{{ s.student.admission_no }}</td>
-        <td><strong style="color:#8b5cf6;">{{ s.score }} pts</strong></td>
-        <td>{{ s.time_seconds }}s</td>
-        <td>{{ s.played_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="alert alert-info mt-3">No students have played this game yet.</div>
-  {% endif %}
-  <a href="/teacher" class="btn btn-secondary mt-2">← Back</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Leaderboard — MPS LMS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
+.header{background:linear-gradient(135deg,#0e9e82,#0a7a65);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:18px;font-weight:700;}
+.header a{color:white;text-decoration:none;background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:16px;font-size:13px;}
+.container{max-width:1200px;margin:28px auto;padding:0 20px;}
+.card{background:white;border-radius:16px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:20px;}
+.card-title{font-size:16px;font-weight:700;color:#0e9e82;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #e8eef5;}
+.card-subtitle{font-size:13px;color:#888;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#0f4c81;color:white;padding:10px 12px;text-align:left;font-size:12px;}
+tbody td{padding:10px 12px;border-bottom:1px solid #f0f3f8;font-size:12px;vertical-align:top;}
+tbody tr:hover td{background:#f7fffe;}
+.rank-badge{font-size:16px;font-weight:700;text-align:center;min-width:30px;}
+.rank-1{color:#fbbf24;}
+.rank-2{color:#9ca3af;}
+.rank-3{color:#f59e0b;}
+.score-highlight{color:#8b5cf6;font-weight:700;font-size:13px;}
+.empty{text-align:center;padding:40px;color:#bbb;font-size:14px;}
+.btn{display:inline-block;padding:8px 20px;border-radius:18px;font-size:12px;font-weight:600;color:white;border:none;cursor:pointer;text-decoration:none;background:#0e9e82;}
+.btn:hover{background:#0a7a65;}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏆 Game Leaderboard</h1>
+  <a href="/teacher">← Back to Teacher</a>
 </div>
-{% endblock %}
+<div class="container">
+  <div class="card">
+    <div class="card-title">{{ game.title }}</div>
+    <div class="card-subtitle">Chapter: {{ game.chapter }} | Section: {{ game.section }}</div>
+    
+    {% if scores %}
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Student Name</th>
+          <th>Admission No</th>
+          <th>Score</th>
+          <th>Time (seconds)</th>
+          <th>Played At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in scores %}
+        <tr>
+          <td class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+            {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+          </td>
+          <td><strong>{{ s.student.student_name }}</strong></td>
+          <td>{{ s.student.admission_no }}</td>
+          <td><span class="score-highlight">{{ s.score }} pts</span></td>
+          <td>{{ s.time_seconds }}</td>
+          <td>{{ s.played_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">📊 No students have played this game yet.</div>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>
