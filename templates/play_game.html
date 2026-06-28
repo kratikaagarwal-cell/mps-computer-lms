@@ -80,7 +80,7 @@ body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, 
 </div>
 
 <script>
-const pairs = {{ game.pairs | tojson }};
+const pairs = {{ pairs_data | tojson }};
 const gameId = {{ game.id }};
 let selectedTerm = null, selectedDef = null;
 let score = 0, matched = 0, timerSecs = 0, timerInterval = null;
