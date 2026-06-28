@@ -483,44 +483,52 @@ function playTone(freq, type, duration, vol=0.18, delay=0){
 }
 
 function soundCorrect(){
-  // Happy ascending chime
-  playTone(523,  'sine', 0.12, 0.20, 0.00);
-  playTone(659,  'sine', 0.12, 0.20, 0.10);
-  playTone(784,  'sine', 0.18, 0.20, 0.20);
-  playTone(1047, 'sine', 0.22, 0.18, 0.30);
+  // LOUDER Happy ascending chime - More exciting!
+  playTone(523,  'sine', 0.18, 0.40, 0.00);
+  playTone(659,  'sine', 0.18, 0.45, 0.08);
+  playTone(784,  'sine', 0.22, 0.50, 0.16);
+  playTone(1047, 'square', 0.28, 0.55, 0.24);
+  playTone(1319, 'sine', 0.12, 0.40, 0.36);
 }
 
 function soundStreak(){
-  // Extra sparkle for streaks
-  playTone(784,  'sine', 0.08, 0.15, 0.00);
-  playTone(988,  'sine', 0.08, 0.15, 0.07);
-  playTone(1175, 'sine', 0.08, 0.15, 0.14);
-  playTone(1568, 'sine', 0.14, 0.15, 0.21);
-  playTone(2093, 'sine', 0.14, 0.12, 0.30);
+  // SUPER LOUD sparkle for streaks - Very excited!
+  playTone(784,  'square', 0.12, 0.60, 0.00);
+  playTone(988,  'square', 0.12, 0.65, 0.05);
+  playTone(1175, 'square', 0.12, 0.70, 0.10);
+  playTone(1568, 'sawtooth', 0.18, 0.75, 0.15);
+  playTone(2093, 'square', 0.18, 0.80, 0.22);
+  playTone(1568, 'square', 0.14, 0.70, 0.32);
+  playTone(2093, 'sine', 0.16, 0.75, 0.40);
 }
 
 function soundWrong(){
-  // Buzzer
-  playTone(220, 'sawtooth', 0.08, 0.12, 0.00);
-  playTone(185, 'sawtooth', 0.10, 0.12, 0.09);
-  playTone(155, 'square',   0.08, 0.10, 0.18);
+  // Loud buzzer - More impact!
+  playTone(220, 'sawtooth', 0.14, 0.50, 0.00);
+  playTone(185, 'sawtooth', 0.14, 0.55, 0.08);
+  playTone(155, 'square',   0.14, 0.60, 0.16);
+  playTone(110, 'square',   0.12, 0.50, 0.24);
 }
 
 function soundSelect(){
-  // Soft click
-  playTone(880, 'sine', 0.06, 0.08, 0.00);
+  // Louder click - More satisfying!
+  playTone(880, 'square', 0.10, 0.25, 0.00);
+  playTone(1100, 'sine', 0.08, 0.20, 0.04);
 }
 
 function soundCountdown(n){
-  if(n>0) playTone(660, 'sine', 0.14, 0.18);
-  else    playTone(880, 'triangle', 0.25, 0.22);
+  if(n>0) playTone(660, 'square', 0.20, 0.50, 0.00);
+  else    playTone(880, 'triangle', 0.35, 0.70, 0.00);
 }
 
 function soundVictory(){
-  // Full fanfare
-  const notes=[523,659,784,1047,784,1047,1319];
-  const times=[0,.1,.2,.32,.5,.6,.72];
-  notes.forEach((f,i)=> playTone(f,'sine',0.22,0.22,times[i]));
+  // EPIC victory fanfare - VERY LOUD AND EXCITING!
+  const notes=[523,659,784,1047,784,1047,1319,1568,1319,1047];
+  const times=[0,.08,.16,.28,.44,.56,.68,.84,1.0,1.16];
+  const types=['sine','sine','sine','square','sine','sine','square','square','sine','sine'];
+  const vols= [0.60, 0.65, 0.70, 0.80,  0.70, 0.75, 0.85,  0.90,  0.75, 0.80];
+  const durs=[0.22, 0.20, 0.22, 0.25,  0.22, 0.22, 0.28,  0.32,  0.28, 0.40];
+  notes.forEach((f,i)=> playTone(f,types[i],durs[i],vols[i],times[i]));
 }
 
 /* ══════════════════════════════════
