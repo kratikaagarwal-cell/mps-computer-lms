@@ -427,6 +427,11 @@ tbody tr:hover td{background:#f7fffe;}
           <div>
             <label>Section</label>
             <select name="section"><option value="All Sections">All Sections</option>{% for sec in sections %}<option>{{ sec }}</option>{% endfor %}</select>
+            <label style="margin-top:10px;">Game Type</label>
+            <select name="game_type" style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+              <option value="matching">🃏 Matching Pairs</option>
+              <option value="word_cloud">☁️ Word Cloud Typing</option>
+            </select>
           </div>
         </div>
         <div style="margin:14px 0 8px;font-size:13px;font-weight:700;color:#0e9e82;">🃏 Word Pairs (Term → Definition)</div>
@@ -445,11 +450,12 @@ tbody tr:hover td{background:#f7fffe;}
       <div class="card-title">🎮 All Games</div>
       {% if games %}
       <table>
-        <thead><tr><th>#</th><th>Title</th><th>Chapter</th><th>Section</th><th>Pairs</th><th>Players</th><th>Actions</th></tr></thead>
+        <thead><tr><th>#</th><th>Title</th><th>Chapter</th><th>Type</th><th>Section</th><th>Pairs</th><th>Players</th><th>Actions</th></tr></thead>
         <tbody>{% for g in games %}<tr>
           <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
           <td><strong>{{ g.title }}</strong></td>
           <td style="font-size:11px;">{{ g.chapter }}</td>
+          <td><span class="badge" style="background:{% if g.game_type=='word_cloud' %}#e0f2fe;color:#0369a1{% else %}#ede9fe;color:#6d28d9{% endif %}">{% if g.game_type=='word_cloud' %}☁️ Cloud{% else %}🃏 Match{% endif %}</span></td>
           <td><span class="badge bg-orange">{{ g.section }}</span></td>
           <td><span class="badge bg-teal">{{ g.pairs|length }} pairs</span></td>
           <td><span class="badge bg-green">{{ g.scores|length }}</span></td>
