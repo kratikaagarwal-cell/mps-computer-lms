@@ -431,17 +431,16 @@ def delete_section():
     sec = request.form.get("del_section", "").strip()
     if not sec:
         return redirect("/students")
-    students = Student.query.filter_by(section=sec).all()
-    for s in students:
-        # delete all related data first
-        ChapterProgress.query.filter_by(student_id=s.id).delete()
-        AssignmentSubmission.query.filter_by(student_id=s.id).delete()
-        QuizAttempt.query.filter_by(student_id=s.id).delete()
-        GameScore.query.filter_by(student_id=s.id).delete()
-        StudentQuery.query.filter_by(student_id=s.id).delete()
-        Feedback.query.filter_by(student_id=s.id).delete()
-        db.session.delete(s)
-    db.session.commit()
+    student_ids = [s.id for s in Student.query.filter_by(section=sec).with_entities(Student.id).all()]
+    if student_ids:
+        ChapterProgress.query.filter(ChapterProgress.student_id.in_(student_ids)).delete(synchronize_session=False)
+        AssignmentSubmission.query.filter(AssignmentSubmission.student_id.in_(student_ids)).delete(synchronize_session=False)
+        QuizAttempt.query.filter(QuizAttempt.student_id.in_(student_ids)).delete(synchronize_session=False)
+        GameScore.query.filter(GameScore.student_id.in_(student_ids)).delete(synchronize_session=False)
+        StudentQuery.query.filter(StudentQuery.student_id.in_(student_ids)).delete(synchronize_session=False)
+        Feedback.query.filter(Feedback.student_id.in_(student_ids)).delete(synchronize_session=False)
+        Student.query.filter(Student.id.in_(student_ids)).delete(synchronize_session=False)
+        db.session.commit()
     return redirect("/students")
 
 @app.route("/upload_students", methods=["GET","POST"])
