@@ -326,7 +326,18 @@ tbody tr:hover td{background:#f7fffe;}
           <td>📗 <strong>{{ b.original_name or b.filename }}</strong></td>
           <td style="font-size:11px;">{{ b.chapter }}</td>
           <td><span class="badge bg-green">{{ b.section }}</span></td>
-          <td><a href="/uploads/{{ b.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note/{{ b.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+          <td>
+            {% set book_url = b.external_url if b.external_url else ('/uploads/' + b.filename if b.filename else '') %}
+            {% if book_url %}
+              {% if 'drive.google.com' in book_url %}
+                {% set preview_url = book_url.replace('/view?usp=drive_link','').replace('/view?usp=sharing','').replace('/view','') + '/preview' %}
+                <a href="{{ preview_url }}" class="btn btn-teal btn-sm" target="_blank">📖 Read</a>
+              {% else %}
+                <a href="{{ book_url }}" class="btn btn-teal btn-sm" target="_blank">📖 Read</a>
+              {% endif %}
+            {% endif %}
+            <a href="/delete_note/{{ b.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a>
+          </td>
         </tr>{% endfor %}</tbody>
       </table>
       {% else %}<div class="empty">No books uploaded yet.</div>{% endif %}
