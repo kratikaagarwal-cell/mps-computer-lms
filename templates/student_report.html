@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Progress Report — {{ student.student_name }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1a1a2e}
+.screen-only{display:block}
+.page{max-width:780px;margin:30px auto;background:white;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);overflow:hidden}
+/* Header */
+.report-header{background:linear-gradient(135deg,#0f4c81,#1abc9c);color:white;padding:28px 32px;display:flex;justify-content:space-between;align-items:center}
+.school-name{font-size:20px;font-weight:700;letter-spacing:.02em}
+.report-title{font-size:13px;opacity:.85;margin-top:4px}
+.report-date{font-size:12px;opacity:.75;text-align:right}
+/* Student info */
+.student-info{background:#f8faff;border-bottom:2px solid #e8eef5;padding:20px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.info-item label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.info-item value{display:block;font-size:14px;font-weight:600;color:#1a1a2e;margin-top:3px}
+/* Overall score */
+.overall-section{padding:24px 32px;border-bottom:2px solid #e8eef5;display:flex;align-items:center;gap:24px}
+.overall-circle{width:90px;height:90px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.overall-pct{font-size:26px;font-weight:700;line-height:1}
+.overall-label{font-size:10px;margin-top:2px;font-weight:600}
+.overall-bar-wrap{flex:1}
+.overall-bar-title{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
+.overall-bar-bg{background:#e8eef5;border-radius:8px;height:14px;overflow:hidden}
+.overall-bar-fill{height:14px;border-radius:8px;background:linear-gradient(90deg,#0f4c81,#1abc9c);transition:width .5s}
+.overall-meta{font-size:12px;color:#888;margin-top:6px}
+/* Chapter table */
+.chapters-section{padding:24px 32px}
+.section-title{font-size:14px;font-weight:700;color:#0f4c81;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #e8eef5}
+table{width:100%;border-collapse:collapse}
+thead th{background:#0f4c81;color:white;padding:10px 12px;font-size:11px;text-align:left}
+thead th:first-child{border-radius:6px 0 0 0}
+thead th:last-child{border-radius:0 6px 0 0;text-align:center}
+tbody td{padding:10px 12px;border-bottom:1px solid #f0f3f8;font-size:12px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+.activity-icons{display:flex;gap:6px;align-items:center}
+.icon-pill{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.done{background:#d1fae5;color:#065f46}
+.skip{background:#f3f4f6;color:#9ca3af}
+.progress-bar-wrap{background:#f0f4f8;border-radius:6px;height:8px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:8px}
+.progress-bar-fill{height:8px;border-radius:6px}
+.fill-100{background:#1abc9c}
+.fill-mid{background:#f59e0b}
+.fill-low{background:#ef4444}
+.pct-text{font-weight:700;font-size:13px;vertical-align:middle;margin-left:6px}
+/* Footer */
+.report-footer{background:#f8faff;border-top:2px solid #e8eef5;padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+.footer-note{font-size:11px;color:#aaa}
+.btn{display:inline-block;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;color:white;border:none;cursor:pointer;text-decoration:none;margin-left:8px}
+.btn-blue{background:#0f4c81}
+.btn-green{background:#1abc9c}
+/* Legend */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#666}
+@media print{
+  body{background:white}
+  .screen-only{display:none!important}
+  .page{box-shadow:none;margin:0;border-radius:0;max-width:100%}
+  thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .done{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .overall-circle{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-only" style="text-align:center;padding:16px;background:#f0f4f8">
+  <a href="javascript:window.print()" class="btn btn-green">🖨 Print / Save as PDF</a>
+  <a href="/progress_report?class={{ student.student_class }}&section={{ student.section }}" class="btn btn-blue">← Back to class report</a>
+</div>
+
+<div class="page">
+  <!-- Header -->
+  <div class="report-header">
+    <div>
+      <div class="school-name">MPS Computer LMS</div>
+      <div class="report-title">Student Progress Report</div>
+    </div>
+    <div class="report-date">
+      <div>Generated on</div>
+      <div style="font-weight:600;font-size:13px;margin-top:2px">{{ generated_on }}</div>
+    </div>
+  </div>
+
+  <!-- Student info -->
+  <div class="student-info">
+    <div class="info-item">
+      <label>Student name</label>
+      <value>{{ student.student_name }}</value>
+    </div>
+    <div class="info-item">
+      <label>Admission no</label>
+      <value>{{ student.admission_no }}</value>
+    </div>
+    <div class="info-item">
+      <label>Class &amp; section</label>
+      <value>Class {{ student.student_class }} — {{ student.section }}</value>
+    </div>
+    <div class="info-item">
+      <label>Roll no</label>
+      <value>{{ student.roll_no }}</value>
+    </div>
+  </div>
+
+  <!-- Overall progress -->
+  <div class="overall-section">
+    {% set oc = "#1abc9c" if overall==100 else ("#f59e0b" if overall>=50 else "#ef4444") %}
+    <div class="overall-circle" style="background:{{ oc }}15;border:3px solid {{ oc }}">
+      <span class="overall-pct" style="color:{{ oc }}">{{ overall }}%</span>
+      <span class="overall-label" style="color:{{ oc }}">Overall</span>
+    </div>
+    <div class="overall-bar-wrap">
+      <div class="overall-bar-title">Overall course completion</div>
+      <div class="overall-bar-bg">
+        <div class="overall-bar-fill" style="width:{{ overall }}%"></div>
+      </div>
+      <div class="overall-meta">
+        {{ chapter_data | selectattr('pct','equalto',100) | list | length }} of {{ chapter_data | length }} chapters completed
+        &nbsp;·&nbsp;
+        {{ chapter_data | selectattr('pct','greaterthan',0) | rejectattr('pct','equalto',100) | list | length }} in progress
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter breakdown -->
+  <div class="chapters-section">
+    <div class="section-title">Chapter-wise breakdown</div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="icon-pill done">V</span> Video watched</div>
+      <div class="legend-item"><span class="icon-pill done">N</span> Notes read</div>
+      <div class="legend-item"><span class="icon-pill done">B</span> Book read</div>
+      <div class="legend-item"><span class="icon-pill done">Q</span> Quiz done</div>
+      <div class="legend-item"><span class="icon-pill done">G</span> Game played</div>
+      <div class="legend-item"><span class="icon-pill skip">—</span> Not applicable</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Chapter</th>
+          <th>Activities</th>
+          <th style="text-align:center">Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ch in chapter_data %}
+        <tr>
+          <td style="color:#aaa;font-size:11px">{{ ch.no }}</td>
+          <td style="font-weight:600;font-size:12px">{{ ch.name }}</td>
+          <td>
+            <div class="activity-icons">
+              {% if ch.has_video %}<span class="icon-pill {{ 'done' if ch.video else 'skip' }}">V</span>{% endif %}
+              {% if ch.has_notes %}<span class="icon-pill {{ 'done' if ch.notes else 'skip' }}">N</span>{% endif %}
+              {% if ch.has_book  %}<span class="icon-pill {{ 'done' if ch.book  else 'skip' }}">B</span>{% endif %}
+              {% if ch.has_quiz  %}<span class="icon-pill {{ 'done' if ch.quiz  else 'skip' }}">Q</span>{% endif %}
+              {% if ch.has_game  %}<span class="icon-pill {{ 'done' if ch.game  else 'skip' }}">G</span>{% endif %}
+            </div>
+          </td>
+          <td style="text-align:center;white-space:nowrap">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill {{ 'fill-100' if ch.pct==100 else ('fill-mid' if ch.pct>0 else 'fill-low') }}" style="width:{{ ch.pct }}%"></div>
+            </div>
+            <span class="pct-text" style="color:{{ '#1abc9c' if ch.pct==100 else ('#f59e0b' if ch.pct>0 else '#ef4444') }}">{{ ch.pct }}%</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="report-footer">
+    <div class="footer-note">MPS Computer LMS · Confidential — For school use only</div>
+    <div class="footer-note">Parent signature: ___________________________</div>
+  </div>
+</div>
+
+</body>
+</html>
