@@ -425,6 +425,99 @@ def delete_student(id):
     if s: db.session.delete(s); db.session.commit()
     return redirect("/students")
 
+# ── Chapter-wise progress report (teacher + admin) ────────────────────────────
+@app.route("/progress_report")
+def progress_report():
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+    sel_class   = request.args.get("class", "6")
+    sel_section = request.args.get("section", "")
+    CHAPTERS    = ALL_CHAPTERS.get(sel_class, ALL_CHAPTERS["6"])
+    sections    = ALL_SECTIONS.get(sel_class, [])
+    configs     = {c.chapter_no: c for c in ChapterConfig.query.filter_by(student_class=sel_class).all()}
+
+    q = Student.query.filter_by(student_class=sel_class)
+    if sel_section:
+        q = q.filter_by(section=sel_section)
+    students = q.order_by(Student.section, Student.roll_no).all()
+
+    # Build progress map: {student_id: {chapter_no: pct}}
+    all_progress = ChapterProgress.query.filter_by(student_class=sel_class).all()
+    prog_map = {}
+    for p in all_progress:
+        prog_map.setdefault(p.student_id, {})[p.chapter_no] = p
+
+    # Build chapter summary: {chapter_no: {completed, in_progress, not_started, total}}
+    chapter_summary = {}
+    for ch in CHAPTERS:
+        cno = ch["no"]
+        cfg = configs.get(cno)
+        completed = in_progress = 0
+        for s in students:
+            pct = get_chapter_progress_pct(prog_map.get(s.id, {}).get(cno), cfg)
+            if pct == 100: completed += 1
+            elif pct > 0:  in_progress += 1
+        chapter_summary[cno] = {
+            "completed":   completed,
+            "in_progress": in_progress,
+            "not_started": len(students) - completed - in_progress,
+            "total":       len(students)
+        }
+
+    # Build student rows: [{student, chapter_pcts: {cno: pct}, overall_pct}]
+    student_rows = []
+    for s in students:
+        pcts = {}
+        for ch in CHAPTERS:
+            cno = ch["no"]
+            pcts[cno] = get_chapter_progress_pct(prog_map.get(s.id, {}).get(cno), configs.get(cno))
+        overall = int(sum(pcts.values()) / len(CHAPTERS)) if CHAPTERS else 0
+        student_rows.append({"student": s, "pcts": pcts, "overall": overall})
+
+    return render_template("progress_report.html",
+        chapters=CHAPTERS, chapter_summary=chapter_summary,
+        student_rows=student_rows, sel_class=sel_class,
+        sel_section=sel_section, sections=sections,
+        total_students=len(students))
+
+# ── Printable single-student report ───────────────────────────────────────────
+@app.route("/student_report/<int:student_id>")
+def student_report(student_id):
+    if "teacher" not in session and "admin" not in session:
+        return redirect("/teacher_login")
+    student  = db.session.get(Student, student_id)
+    if not student: return "Student not found", 404
+    cls      = student.student_class
+    CHAPTERS = ALL_CHAPTERS.get(cls, ALL_CHAPTERS["6"])
+    configs  = {c.chapter_no: c for c in ChapterConfig.query.filter_by(student_class=cls).all()}
+    progs    = {p.chapter_no: p for p in ChapterProgress.query.filter_by(student_id=student_id, student_class=cls).all()}
+
+    chapter_data = []
+    for ch in CHAPTERS:
+        cno  = ch["no"]
+        cfg  = configs.get(cno)
+        prog = progs.get(cno)
+        pct  = get_chapter_progress_pct(prog, cfg)
+        chapter_data.append({
+            "no":     cno,
+            "name":   ch["name"],
+            "pct":    pct,
+            "video":  prog.video_done  if prog else False,
+            "notes":  prog.notes_done  if prog else False,
+            "book":   prog.book_done   if prog else False,
+            "quiz":   prog.quiz_done   if prog else False,
+            "game":   prog.game_done   if prog else False,
+            "has_video": cfg.has_video if cfg else False,
+            "has_notes": cfg.has_notes if cfg else False,
+            "has_book":  cfg.has_book  if cfg else False,
+            "has_quiz":  cfg.has_quiz  if cfg else False,
+            "has_game":  cfg.has_game  if cfg else False,
+        })
+    overall = int(sum(c["pct"] for c in chapter_data) / len(CHAPTERS)) if CHAPTERS else 0
+    return render_template("student_report.html",
+        student=student, chapter_data=chapter_data, overall=overall,
+        generated_on=now_str())
+
 @app.route("/delete_section", methods=["POST"])
 def delete_section():
     if "admin" not in session: return redirect("/login")
