@@ -573,19 +573,20 @@ def upload_notes():
         safe_name = safe_filename(file.filename)
         file_bytes = file.read()
         original_filename = file.filename
-        
+
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(file.filename)
+        mime_type = mime_type or "application/octet-stream"
+
         try:
-            # Upload to Supabase (store in cloud)
-            supabase.storage.from_("lms-files").upload(safe_name, file_bytes)
-            
-            # FIX: Store only filename (not full URL) like assignments do
-            # This makes notes use /uploads/ route through Flask
-            # Just like assignments, which work fine!
+            # Upload to Supabase with correct content-type so browser can render PDF
+            supabase.storage.from_("lms-files").upload(
+                safe_name,
+                file_bytes,
+                {"content-type": mime_type}
+            )
             public_url = safe_name
-            
-            print(f"✅ File uploaded to Supabase: {safe_name}")
-            print(f"✅ Stored as filename: {public_url}")
-            print(f"✅ Will be accessed via: /uploads/{public_url}")
+            print(f"✅ File uploaded to Supabase: {safe_name} ({mime_type})")
             
         except Exception as e:
             print(f"❌ Supabase upload error: {e}")
@@ -711,7 +712,14 @@ def create_assignment():
             f.write(file_bytes)
         # Also save to Supabase so it survives server redeploys
         try:
-            supabase.storage.from_("lms-files").upload(safe_name, file_bytes)
+            import mimetypes
+            mime_type, _ = mimetypes.guess_type(safe_name)
+            mime_type = mime_type or "application/octet-stream"
+            supabase.storage.from_("lms-files").upload(
+                safe_name,
+                file_bytes,
+                {"content-type": mime_type}
+            )
         except Exception as e:
             print(f"Supabase backup upload warning: {e}")
         filename = safe_name
