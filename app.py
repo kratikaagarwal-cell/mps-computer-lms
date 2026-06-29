@@ -1141,15 +1141,15 @@ def submit_query():
 def submit_feedback():
     return submit_query()
 
-# ── File serving: redirect to Supabase CDN instead of proxying through Flask ──
-# This means your server only issues a 302 redirect; Supabase CDN delivers the
-# actual file. Signed URLs expire after 1 hour (3600 seconds).
+# ── File serving ──────────────────────────────────────────────────────────────
+# Assignments → served from local disk (uploaded via teacher panel)
+# Notes/Books → public URL from Supabase CDN (bucket must be set to public)
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
     import mimetypes
     local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
-    # Assignments are stored locally — serve them directly (they're small)
+    # Assignments are stored locally on disk
     if os.path.exists(local_path):
         mime, _ = mimetypes.guess_type(filename)
         from flask import make_response
@@ -1158,16 +1158,10 @@ def serve_upload(filename):
         response.headers["Content-Type"] = mime or "application/octet-stream"
         return response
 
-    # Notes/books live in Supabase storage → redirect to signed CDN URL
-    try:
-        result = supabase.storage.from_("lms-files").create_signed_url(filename, 3600)
-        signed_url = result.get("signedURL") or result.get("signedUrl", "")
-        if signed_url:
-            return redirect(signed_url)
-        return f"File not found: {filename}", 404
-    except Exception as e:
-        print(f"❌ Supabase signed URL error for {filename}: {e}")
-        return f"File not found: {filename}", 404
+    # Notes/books → use public URL from Supabase storage
+    # Make sure your lms-files bucket is set to PUBLIC in Supabase Storage settings
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/lms-files/{filename}"
+    return redirect(public_url)
 
 # ─────────────────────────────────────────────
 # DB INIT
