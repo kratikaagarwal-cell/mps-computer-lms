@@ -703,9 +703,17 @@ def create_assignment():
     sel_class = request.form.get("student_class","6")
     file = request.files.get("file")
     if file and file.filename:
-        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         safe_name = safe_filename(file.filename)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], safe_name))
+        file_bytes = file.read()
+        # Save to local disk (fast serving if still on disk)
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+        with open(os.path.join(app.config["UPLOAD_FOLDER"], safe_name), "wb") as f:
+            f.write(file_bytes)
+        # Also save to Supabase so it survives server redeploys
+        try:
+            supabase.storage.from_("lms-files").upload(safe_name, file_bytes)
+        except Exception as e:
+            print(f"Supabase backup upload warning: {e}")
         filename = safe_name
     db.session.add(Assignment(
         title=request.form["title"], chapter=request.form["chapter"],
@@ -1142,15 +1150,16 @@ def submit_feedback():
     return submit_query()
 
 # ── File serving ──────────────────────────────────────────────────────────────
-# Assignments → served from local disk (uploaded via teacher panel)
-# Notes/Books → public URL from Supabase CDN (bucket must be set to public)
+# All files (notes, books, assignments) are stored in Supabase storage.
+# We redirect directly to the public CDN URL — no proxying through Flask.
+# Make sure lms-files bucket is set to PUBLIC in Supabase Storage settings.
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
-    import mimetypes
     local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
-    # Assignments are stored locally on disk
+    # Try local disk first (assignments saved locally on this server)
     if os.path.exists(local_path):
+        import mimetypes
         mime, _ = mimetypes.guess_type(filename)
         from flask import make_response
         response = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], filename))
@@ -1158,8 +1167,8 @@ def serve_upload(filename):
         response.headers["Content-Type"] = mime or "application/octet-stream"
         return response
 
-    # Notes/books → use public URL from Supabase storage
-    # Make sure your lms-files bucket is set to PUBLIC in Supabase Storage settings
+    # Not on local disk → redirect to Supabase public CDN
+    # Works for notes, books, AND assignments uploaded to Supabase
     public_url = f"{SUPABASE_URL}/storage/v1/object/public/lms-files/{filename}"
     return redirect(public_url)
 
