@@ -420,9 +420,27 @@ def students():
 
 @app.route("/delete/<int:id>")
 def delete_student(id):
-    if "admin" not in session: return redirect("/login")
-    s = db.session.get(Student, id)
-    if s: db.session.delete(s); db.session.commit()
+    if "admin" not in session: 
+        return redirect("/login")
+    
+    # Step 1: Verify student exists
+    student = db.session.get(Student, id)
+    if not student:
+        return redirect("/students")
+    
+    # Step 2: Delete all related records BEFORE deleting the student
+    # This prevents Foreign Key constraint violations
+    ChapterProgress.query.filter_by(student_id=id).delete(synchronize_session=False)
+    AssignmentSubmission.query.filter_by(student_id=id).delete(synchronize_session=False)
+    QuizAttempt.query.filter_by(student_id=id).delete(synchronize_session=False)
+    GameScore.query.filter_by(student_id=id).delete(synchronize_session=False)
+    StudentQuery.query.filter_by(student_id=id).delete(synchronize_session=False)
+    Feedback.query.filter_by(student_id=id).delete(synchronize_session=False)
+    
+    # Step 3: Now delete the student record
+    db.session.delete(student)
+    db.session.commit()
+    
     return redirect("/students")
 
 # ── Chapter-wise progress report (teacher + admin) ────────────────────────────
