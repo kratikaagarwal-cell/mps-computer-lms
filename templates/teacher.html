@@ -319,15 +319,15 @@ tbody tr:hover td{background:#f7fffe;}
   <div id="tab-books" class="tab-content">
     <div class="card">
       <div class="card-title">📗 Book PDFs</div>
-      {% if books %}
+      {% if books_grouped %}
       <table>
         <thead><tr><th>#</th><th>File</th><th>Chapter</th><th>Section</th><th>Actions</th></tr></thead>
-        <tbody>{% for b in books %}<tr>
+        <tbody>{% for b in books_grouped %}<tr>
           <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
           <td>📗 <strong>{{ b.original_name or b.filename }}</strong></td>
           <td style="font-size:11px;">{{ b.chapter }}</td>
-          <td><span class="badge bg-green">{{ b.section }}</span></td>
-          <td><a href="/uploads/{{ b.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note/{{ b.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
+          <td>{% for s in b.sections %}<span class="badge bg-green" style="margin-right:3px;">{{ s }}</span>{% endfor %}</td>
+          <td><a href="/uploads/{{ b.filename }}" class="btn btn-teal btn-sm" target="_blank">⬇</a> <a href="/delete_note_group/{{ b.id_csv }}" class="btn btn-red btn-sm" onclick="return confirm('Delete this book from all {{ b.sections|length }} section(s)?')">🗑</a></td>
         </tr>{% endfor %}</tbody>
       </table>
       {% else %}<div class="empty">No books uploaded yet.</div>{% endif %}
