@@ -320,21 +320,47 @@ def get_youtube_embed(url):
         return url
     return f"https://www.youtube.com/embed/{vid}"
 
+def to_embeddable_url(url):
+    """Google Drive 'view' share links (.../file/d/<id>/view) block being
+    embedded in an iframe. Convert them to the /preview form, which Google
+    allows to be embedded, so the read-only viewer can actually show them."""
+    if "drive.google.com" in url and "/file/d/" in url:
+        try:
+            file_id = url.split("/file/d/")[1].split("/")[0]
+            return f"https://drive.google.com/file/d/{file_id}/preview"
+        except IndexError:
+            return url
+    return url
+
+def split_sections(section_value):
+    """A Note.section can hold one section, a comma-joined list ('6A,6C,6F'),
+    or 'All Sections'. Always return a clean list of individual sections."""
+    if not section_value:
+        return []
+    return [s.strip() for s in section_value.split(",") if s.strip()]
+
+def note_visible_to_section(note_section, student_sec):
+    parts = split_sections(note_section)
+    return student_sec in parts or "All Sections" in parts
+
 class NoteGroup:
-    """Display-only wrapper: one row per unique (file, chapter) combo,
-    with every section it was uploaded to merged into one badge list."""
+    """Display-only wrapper: one row per unique (file, chapter) combo, with
+    every section merged into one badge list. Handles both a single upload
+    row whose section field already holds several comma-joined sections,
+    and (for any older data) multiple rows that still need merging."""
     def __init__(self, note):
         self.ids = [note.id]
         self.filename = note.filename
         self.original_name = note.original_name
         self.chapter = note.chapter
         self.chapter_no = note.chapter_no
-        self.sections = [note.section] if note.section else []
+        self.sections = split_sections(note.section)
 
     def add(self, note):
         self.ids.append(note.id)
-        if note.section and note.section not in self.sections:
-            self.sections.append(note.section)
+        for s in split_sections(note.section):
+            if s not in self.sections:
+                self.sections.append(s)
 
     @property
     def id_csv(self):
@@ -753,28 +779,29 @@ def upload_notes():
         print(f"❌ No URL generated")
         return redirect(f"/teacher?class={sel_class}&error=no_file_or_url")
 
-    # Create note record for each selected section
-    for sec in sections_selected:
-        try:
-            note = Note(
-                filename=public_url,  # ✅ Full URL stored here
-                original_name=original_filename,
-                chapter=chapter,
-                chapter_no=chapter_no,
-                student_class=sel_class,
-                section=sec,
-                description=description,
-                file_type=file_type,
-                external_url=external_url,
-                uploaded_at=now_str()
-            )
-            db.session.add(note)
-            print(f"✅ Note created for section: {sec}")
-            
-        except Exception as e:
-            print(f"❌ Database error: {e}")
-            db.session.rollback()
-            return redirect(f"/teacher?class={sel_class}&error=db_failed")
+    # Create ONE note record covering every selected section — sections are
+    # stored comma-joined (e.g. "6A,6C,6F") so a single upload no longer
+    # multiplies into duplicate database rows.
+    section_value = ",".join(sections_selected) if sections_selected else "All Sections"
+    try:
+        note = Note(
+            filename=public_url,  # ✅ Full URL stored here
+            original_name=original_filename,
+            chapter=chapter,
+            chapter_no=chapter_no,
+            student_class=sel_class,
+            section=section_value,
+            description=description,
+            file_type=file_type,
+            external_url=external_url,
+            uploaded_at=now_str()
+        )
+        db.session.add(note)
+        print(f"✅ Note created for sections: {section_value}")
+    except Exception as e:
+        print(f"❌ Database error: {e}")
+        db.session.rollback()
+        return redirect(f"/teacher?class={sel_class}&error=db_failed")
 
     db.session.commit()
 
@@ -1112,8 +1139,9 @@ def student_portal():
     configs  = {c.chapter_no: c for c in ChapterConfig.query.filter_by(student_class=cls).all()}
 
     def mat(ftype):
-        return Note.query.filter(Note.file_type==ftype, Note.student_class==cls,
-            (Note.section==sec)|(Note.section=="All Sections")).order_by(Note.chapter_no, Note.id).all()
+        rows = Note.query.filter(Note.file_type==ftype, Note.student_class==cls) \
+            .order_by(Note.chapter_no, Note.id).all()
+        return [n for n in rows if note_visible_to_section(n.section, sec)]
 
     notes       = mat("notes")
     books       = mat("book")
@@ -1331,14 +1359,13 @@ def submit_feedback():
 # ── Read-only viewer ────────────────────────────────────────────────────────
 # Wraps a file in an embedded viewer (PDF toolbar hidden, right-click/save
 # shortcuts blocked) instead of letting students hit the raw file directly.
-# Students must be logged in; used for assignments and books.
 @app.route("/view/<path:filename>")
 def view_file(filename):
-    if "student_id" not in session and "teacher_id" not in session and "admin_id" not in session:
+    if "student_id" not in session and "teacher" not in session and "admin" not in session:
         return redirect("/student")
     title = request.args.get("title", filename)
     if filename.startswith("http://") or filename.startswith("https://"):
-        file_url = filename
+        file_url = to_embeddable_url(filename)
     else:
         file_url = f"/uploads/{filename}"
     return render_template("view_file.html", file_url=file_url, title=title)
