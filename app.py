@@ -302,6 +302,20 @@ MONTHS = ["January","February","March","April","May","June","July","August","Sep
 CHAPTERS = ALL_CHAPTERS["6"]
 SECTIONS  = ALL_SECTIONS["6"]
 
+def normalize_section(student_class, section_value):
+    """The rest of the app expects Student.section in the combined
+    'class+section' form used by ALL_SECTIONS, e.g. '6A' — not just 'A'.
+    If someone enters (or imports) a bare section letter/number, prefix it
+    with the student's class so dropdowns, bulk-delete-by-section, and
+    notes/books visibility all match correctly."""
+    cls = (student_class or "").strip()
+    sec = (section_value or "").strip().upper()
+    if not sec:
+        return sec
+    if sec.startswith(cls):
+        return sec
+    return f"{cls}{sec}"
+
 def now_str():
     return datetime.now().strftime("%d %b %Y, %I:%M %p")
 
@@ -481,6 +495,25 @@ def students():
                     "9A","9B","9C","9D","9E","9F","9G","9H"]
     return render_template("students.html", students=data.all(), total=Student.query.count(),
         sections=all_sections, search=search, section=section)
+
+@app.route("/fix_student_sections")
+def fix_student_sections():
+    # One-click cleanup for students whose Section was entered as just
+    # 'A' etc. instead of the combined 'class+section' form ('6A') the
+    # rest of the app expects — which is why bulk delete-by-section
+    # (and other section matching) was silently finding 0 students.
+    if "admin" not in session:
+        return redirect("/login")
+    fixed = 0
+    for s in Student.query.all():
+        correct = normalize_section(s.student_class, s.section)
+        if correct != s.section:
+            s.section = correct
+            fixed += 1
+    db.session.commit()
+    return (f"<div style='font-family:sans-serif;padding:40px;text-align:center;'>"
+            f"✅ Fixed {fixed} student record(s) — sections normalized to the class+section format.<br><br>"
+            f"<a href='/students' style='color:#0f4c81;font-weight:600;'>← Back to Students</a></div>")
 
 @app.route("/delete/<int:id>")
 def delete_student(id):
@@ -666,13 +699,14 @@ def upload_students():
 
             if admission and admission not in existing_admissions:
 
+                cls = str(data.get("Class",""))
                 students_to_add.append(
                     Student(
                         admission_no=admission,
                         student_name=str(data.get("Student_Name","")),
                         dob=str(data.get("DOB","")),
-                        student_class=str(data.get("Class","")),
-                        section=str(data.get("Section","")),
+                        student_class=cls,
+                        section=normalize_section(cls, data.get("Section","")),
                         roll_no=str(data.get("Roll_No","")),
                         parent_mobile=str(data.get("Parent_Mobile",""))
                     )
