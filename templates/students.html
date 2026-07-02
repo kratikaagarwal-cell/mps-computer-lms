@@ -76,6 +76,11 @@ tbody tr:hover td { background: #f7fffe; }
       </select>
       <button type="submit" class="btn btn-red">Delete Section</button>
     </form>
+    <a href="/fix_student_sections" class="btn" style="background:#fef3c7;color:#92400e;font-weight:600;"
+       onclick="return confirm('This will rewrite any student Section value that is missing the class prefix (e.g. \'A\' → \'6A\'). Continue?')">
+       🔧 Fix Section Values
+    </a>
+  </div>
   </div>
 
   <div class="card">
