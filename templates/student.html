@@ -224,7 +224,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             <div class="mat-icon">📎</div>
             <div class="mat-info">
               <div class="mat-name">{{ n.original_name or n.filename }}</div>
-              <div class="mat-sub">{{ n.description or 'Study notes' }} · Sec {{ n.section }}</div>
+              <div class="mat-sub">{{ n.description or 'Study notes' }} · Sec {{ student.section }}</div>
             </div>
             <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
               <!-- FIX #6: Read only, no download -->
@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="mat-icon">📗</div>
           <div class="mat-info">
             <div class="mat-name">{{ b.original_name or b.filename or 'Book Resource' }}</div>
-            <div class="mat-sub">{{ b.chapter }} · Sec {{ b.section }}</div>
+            <div class="mat-sub">{{ b.chapter }} · Sec {{ student.section }}</div>
           </div>
           <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
             <!-- FIX #3: open external URL if set, otherwise serve file inline; FIX #6: read-only -->
