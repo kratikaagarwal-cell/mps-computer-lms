@@ -320,6 +320,44 @@ def get_youtube_embed(url):
         return url
     return f"https://www.youtube.com/embed/{vid}"
 
+class NoteGroup:
+    """Display-only wrapper: one row per unique (file, chapter) combo,
+    with every section it was uploaded to merged into one badge list."""
+    def __init__(self, note):
+        self.ids = [note.id]
+        self.filename = note.filename
+        self.original_name = note.original_name
+        self.chapter = note.chapter
+        self.chapter_no = note.chapter_no
+        self.sections = [note.section] if note.section else []
+
+    def add(self, note):
+        self.ids.append(note.id)
+        if note.section and note.section not in self.sections:
+            self.sections.append(note.section)
+
+    @property
+    def id_csv(self):
+        return ",".join(str(i) for i in self.ids)
+
+    @property
+    def section_display(self):
+        return ", ".join(self.sections) if self.sections else "All Sections"
+
+def group_notes_by_file(note_list):
+    """Collapse Note rows that share the same file/URL + chapter (uploaded
+    to multiple sections) into a single row for cleaner teacher-side display."""
+    groups = {}
+    order = []
+    for n in note_list:
+        key = (n.filename, n.chapter_no)
+        if key in groups:
+            groups[key].add(n)
+        else:
+            groups[key] = NoteGroup(n)
+            order.append(key)
+    return [groups[k] for k in order]
+
 def get_chapter_progress_pct(prog, config):
     if not prog or not config: return 0
     total = done = 0
@@ -641,6 +679,8 @@ def teacher():
     sections  = ALL_SECTIONS.get(sel_class, ALL_SECTIONS["6"])
     notes      = Note.query.filter_by(file_type="notes", student_class=sel_class).order_by(Note.id.desc()).all()
     books      = Note.query.filter_by(file_type="book",  student_class=sel_class).order_by(Note.id.desc()).all()
+    notes_grouped = group_notes_by_file(notes)
+    books_grouped = group_notes_by_file(books)
     assignments= Assignment.query.filter_by(student_class=sel_class).order_by(Assignment.id.desc()).all()
     quizzes    = Quiz.query.filter_by(student_class=sel_class).order_by(Quiz.id.desc()).all()
     games      = Game.query.filter_by(student_class=sel_class).order_by(Game.id.desc()).all()
@@ -649,7 +689,8 @@ def teacher():
     # FIX #5/#9: load queries (not feedbacks) for teacher view
     queries    = StudentQuery.query.filter_by(student_class=sel_class).order_by(StudentQuery.id.desc()).limit(20).all()
     return render_template("teacher.html",
-        notes=notes, books=books, assignments=assignments,
+        notes=notes, books=books, notes_grouped=notes_grouped, books_grouped=books_grouped,
+        assignments=assignments,
         quizzes=quizzes, games=games, videos=videos,
         configs=configs, chapters=chapters, sections=sections,
         months=MONTHS, teacher_name=session.get("teacher_name","Teacher"),
@@ -757,6 +798,25 @@ def delete_note(id):
             fpath = os.path.join(app.config["UPLOAD_FOLDER"], note.filename)
             if os.path.exists(fpath): os.remove(fpath)
         db.session.delete(note); db.session.commit()
+    return redirect(f"/teacher?class={sel_class}")
+
+@app.route("/delete_note_group/<ids>")
+def delete_note_group(ids):
+    # ids is a comma-separated list of Note.id — deletes every section-row
+    # belonging to one merged (file + chapter) entry shown on the teacher page.
+    if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
+    sel_class = "6"
+    for raw_id in ids.split(","):
+        raw_id = raw_id.strip()
+        if not raw_id.isdigit(): continue
+        note = db.session.get(Note, int(raw_id))
+        if note:
+            sel_class = note.student_class
+            if note.filename:
+                fpath = os.path.join(app.config["UPLOAD_FOLDER"], note.filename)
+                if os.path.exists(fpath): os.remove(fpath)
+            db.session.delete(note)
+    db.session.commit()
     return redirect(f"/teacher?class={sel_class}")
 
 @app.route("/add_video", methods=["POST"])
@@ -1267,6 +1327,21 @@ def submit_query():
 @app.route("/submit_feedback", methods=["POST"])
 def submit_feedback():
     return submit_query()
+
+# ── Read-only viewer ────────────────────────────────────────────────────────
+# Wraps a file in an embedded viewer (PDF toolbar hidden, right-click/save
+# shortcuts blocked) instead of letting students hit the raw file directly.
+# Students must be logged in; used for assignments and books.
+@app.route("/view/<path:filename>")
+def view_file(filename):
+    if "student_id" not in session and "teacher_id" not in session and "admin_id" not in session:
+        return redirect("/student")
+    title = request.args.get("title", filename)
+    if filename.startswith("http://") or filename.startswith("https://"):
+        file_url = filename
+    else:
+        file_url = f"/uploads/{filename}"
+    return render_template("view_file.html", file_url=file_url, title=title)
 
 # ── File serving ──────────────────────────────────────────────────────────────
 # All files (notes, books, assignments) are stored in Supabase storage.
