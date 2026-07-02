@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:#2b2b2b; font-family:'Segoe UI',Arial,sans-serif; }
+  .topbar {
+    height:48px; background:#1f2937; color:#fff; display:flex; align-items:center;
+    padding:0 16px; font-size:14px; font-weight:600; letter-spacing:.3px;
+    justify-content:space-between; user-select:none;
+  }
+  .topbar .lbl { display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .topbar .tag { background:#e74c3c; font-size:11px; padding:3px 8px; border-radius:10px; font-weight:700; }
+  .frame-wrap { position:relative; width:100%; height:calc(100% - 48px); }
+  iframe {
+    width:100%; height:100%; border:none; background:#525659;
+  }
+  /* transparent shield along the very top of the iframe to block the
+     native PDF viewer's own download/print icons in most browsers */
+  .shield-top {
+    position:absolute; top:0; left:0; right:0; height:40px; z-index:5;
+    background:transparent;
+  }
+</style>
+</head>
+<body oncontextmenu="return false;">
+  <div class="topbar">
+    <div class="lbl">📖 {{ title }}</div>
+    <div class="tag">READ ONLY</div>
+  </div>
+  <div class="frame-wrap">
+    <div class="shield-top" title="Viewing only"></div>
+    <iframe src="{{ file_url }}#toolbar=0&navpanes=0&scrollbar=1" title="{{ title }}"></iframe>
+  </div>
+
+  <script>
+    // Block common save/print/devtools shortcuts. This is a deterrent for
+    // casual users, not a hard security guarantee — a determined user can
+    // always find a way to copy content they can see on screen.
+    document.addEventListener('keydown', function (e) {
+      const k = e.key ? e.key.toLowerCase() : '';
+      const blockCombo =
+        ((e.ctrlKey || e.metaKey) && (k === 's' || k === 'p' || k === 'u')) ||
+        (e.ctrlKey && e.shiftKey && k === 'i') ||
+        k === 'f12';
+      if (blockCombo) { e.preventDefault(); e.stopPropagation(); return false; }
+    });
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  </script>
+</body>
+</html>
