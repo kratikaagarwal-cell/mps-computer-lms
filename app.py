@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
+from flask import Flask, render_template, render_template_string, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from datetime import datetime
@@ -496,6 +496,44 @@ def students():
     return render_template("students.html", students=data.all(), total=Student.query.count(),
         sections=all_sections, search=search, section=section)
 
+FIX_SECTIONS_RESULT_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sections Fixed — MPS LMS</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f4c81, #1abc9c); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.box { background: white; border-radius: 24px; padding: 48px 36px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-width: 440px; width: 100%; }
+.icon { font-size: 70px; display: block; margin-bottom: 16px; }
+h2 { font-size: 26px; font-weight: 800; color: #0f4c81; margin-bottom: 8px; }
+p { font-size: 14px; color: #888; margin-bottom: 6px; }
+.num { font-size: 42px; font-weight: 800; color: #1abc9c; margin: 16px 0 6px; }
+.note { background: #f0f4f8; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #555; margin: 18px 0 24px; line-height: 1.5; }
+.btn { display: inline-block; padding: 12px 28px; border-radius: 25px; font-size: 14px; font-weight: 700; color: white; text-decoration: none; background: linear-gradient(135deg, #0f4c81, #1abc9c); margin: 0 6px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <span class="icon">🔧</span>
+  <h2>Section Values Fixed!</h2>
+  <p>Student sections have been normalized.</p>
+  <div class="num">{{ fixed }}</div>
+  <p>record{{ 's' if fixed != 1 else '' }} updated</p>
+  {% if fixed > 0 %}
+  <div class="note">Bare section letters (e.g. "C") were rewritten to the full class+section code (e.g. "6C") so bulk delete-by-section now matches correctly.</div>
+  {% else %}
+  <div class="note">Everything was already in the correct format — no changes were needed.</div>
+  {% endif %}
+  <a href="/students" class="btn">👨‍🎓 View Students</a>
+  <a href="/admin" class="btn">📊 Dashboard</a>
+</div>
+</body>
+</html>
+"""
+
 @app.route("/fix_student_sections")
 def fix_student_sections():
     # One-click cleanup for students whose Section was entered as just
@@ -511,7 +549,7 @@ def fix_student_sections():
             s.section = correct
             fixed += 1
     db.session.commit()
-    return render_template("fix_sections_result.html", fixed=fixed)
+    return render_template_string(FIX_SECTIONS_RESULT_HTML, fixed=fixed)
 
 @app.route("/delete/<int:id>")
 def delete_student(id):
