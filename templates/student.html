@@ -228,7 +228,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             </div>
             <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
               <!-- FIX #6: Read only, no download -->
-              <a href="{% if n.filename.startswith('http') %}{{ n.filename }}{% elif n.external_url %}{{ n.external_url }}{% else %}/uploads/{{ n.filename }}{% endif %}" class="btn btn-blue" target="_blank">👁 Read</a>
+              <a href="{% if n.filename.startswith('http') %}/view/{{ n.filename }}{% elif n.external_url %}{{ n.external_url }}{% else %}/view/{{ n.filename }}{% endif %}?title={{ (n.original_name or n.filename) | urlencode }}" class="btn btn-blue" target="_blank">👁 Read</a>
               {% set prog = progress_map.get(n.chapter_no) %}
               {% if prog and prog.notes_done %}<span class="badge bg-green">✓ Read</span>{% endif %}
             </div>
@@ -266,14 +266,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           </div>
           <div class="mat-action" style="display:flex;gap:6px;align-items:center;">
             <!-- FIX #3: open external URL if set, otherwise serve file inline; FIX #6: read-only -->
-            {% if b.filename %}
-
-            <a href="{{ b.filename }}"
+            {% if b.filename or b.external_url %}
+            <a href="{% if b.filename and b.filename.startswith('http') %}/view/{{ b.filename }}{% elif b.external_url %}{{ b.external_url }}{% else %}/view/{{ b.filename }}{% endif %}?title={{ (b.original_name or b.filename or 'Book') | urlencode }}"
             target="_blank"
             class="btn btn-teal">
             📖 Open Book
             </a>
-            
             {% endif %}
             {% set prog = progress_map.get(b.chapter_no) %}
             {% if not (prog and prog.book_done) %}
@@ -351,7 +349,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="am">{{ a.chapter }} · Sec: {{ a.section or 'All' }} · Due: <strong style="color:#e74c3c;">{{ a.due_date or 'No deadline' }}</strong></div>
           {% if a.description %}<div class="ad">📌 {{ a.description }}</div>{% endif %}
           <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-            {% if a.filename %}<a href="/uploads/{{ a.filename }}" class="btn btn-blue btn-sm" target="_blank">📎 View</a>{% endif %}
+            {% if a.filename %}<a href="/view/{{ a.filename }}?title={{ a.title | urlencode }}" class="btn btn-blue btn-sm" target="_blank">📎 View</a>{% endif %}
             {% if is_submitted %}
               <span class="badge bg-green" style="padding:5px 10px;font-size:11px;">✓ Done</span>
             {% else %}
