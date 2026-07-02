@@ -199,7 +199,7 @@ tbody tr:hover td { background: #f7fffe; }
                 {{ n.file_type|title }}
               </span>
             </td>
-            <td><span class="badge bg-blue">{{ n.section }}</span></td>
+            <td>{% for s in (n.section or '').split(',') if s.strip() %}<span class="badge bg-blue" style="margin-right:3px;">{{ s.strip() }}</span>{% endfor %}</td>
           </tr>
           {% endfor %}
         </tbody>
