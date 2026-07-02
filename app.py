@@ -511,9 +511,7 @@ def fix_student_sections():
             s.section = correct
             fixed += 1
     db.session.commit()
-    return (f"<div style='font-family:sans-serif;padding:40px;text-align:center;'>"
-            f"✅ Fixed {fixed} student record(s) — sections normalized to the class+section format.<br><br>"
-            f"<a href='/students' style='color:#0f4c81;font-weight:600;'>← Back to Students</a></div>")
+    return render_template("fix_sections_result.html", fixed=fixed)
 
 @app.route("/delete/<int:id>")
 def delete_student(id):
