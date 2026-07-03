@@ -23,6 +23,42 @@ body{
 .bg-bubble{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:.25;animation:bgFloat var(--d,8s) ease-in-out infinite alternate;}
 @keyframes bgFloat{0%{transform:translateY(0)}100%{transform:translateY(-22px)}}
 
+#fx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── SOUND TOGGLE ── */
+#sound-toggle{position:fixed;top:14px;right:14px;z-index:210;width:44px;height:44px;border-radius:50%;background:white;border:2.5px solid #c4b5fd;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;transition:transform .15s;}
+#sound-toggle:hover{transform:scale(1.1);}
+#sound-toggle.off{opacity:.5;}
+
+/* ── MASCOT ── */
+#mascot-wrap{position:relative;display:flex;justify-content:center;margin-bottom:2px;height:64px;}
+#mascot{font-size:52px;display:inline-block;transform-origin:bottom center;animation:mascotIdle 2.2s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15));}
+@keyframes mascotIdle{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+#mascot.happy{animation:mascotHappy .5s ease;}
+@keyframes mascotHappy{0%{transform:scale(1) rotate(0)}30%{transform:scale(1.3) rotate(-12deg)}60%{transform:scale(1.15) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+#mascot.sad{animation:mascotSad .4s ease;}
+@keyframes mascotSad{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-8px) rotate(-8deg)}75%{transform:translateX(8px) rotate(8deg)}}
+#mascot.fire{animation:mascotFire .35s ease-in-out infinite;}
+@keyframes mascotFire{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.12)}}
+.mascot-spark{position:absolute;font-size:16px;pointer-events:none;animation:sparkFloat .9s ease-out forwards;}
+@keyframes sparkFloat{0%{opacity:1;transform:translate(0,0) scale(.6) rotate(0)}100%{opacity:0;transform:translate(var(--sx),-46px) scale(1.3) rotate(180deg)}}
+
+/* ── COMBO / HYPE TEXT ── */
+.combo-text{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%) scale(.4);z-index:960;font-family:'Fredoka One',cursive;font-size:clamp(28px,7vw,54px);color:#fff;-webkit-text-stroke:2px #7c3aed;text-shadow:0 0 18px rgba(124,58,237,.7),0 6px 0 rgba(124,58,237,.35);pointer-events:none;animation:comboPop .9s cubic-bezier(.2,1.6,.4,1) forwards;white-space:nowrap;}
+@keyframes comboPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(3deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0)}78%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-58%) scale(1.05) rotate(0)}}
+
+/* ── SCREEN FX ── */
+#screen-flash{position:fixed;inset:0;z-index:150;pointer-events:none;opacity:0;}
+#screen-flash.hit{background:radial-gradient(circle,rgba(220,38,38,.16),transparent 70%);animation:flashHit .35s ease;}
+#screen-flash.win{background:radial-gradient(circle,rgba(251,191,36,.22),transparent 70%);animation:flashHit .5s ease;}
+@keyframes flashHit{0%{opacity:1}100%{opacity:0}}
+.shake{animation:screenShake .35s;}
+@keyframes screenShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px) rotate(-.4deg)}40%{transform:translateX(8px) rotate(.4deg)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+
+/* ── FIRE TRAIL ── */
+.fire-bit{position:absolute;bottom:4px;font-size:16px;pointer-events:none;animation:fireBitFade .5s ease-out forwards;}
+@keyframes fireBitFade{0%{opacity:.9;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(10px) scale(.4)}}
+
 .wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:18px 14px 40px;}
 
 /* ── TITLE ── */
@@ -46,13 +82,18 @@ body{
 
 /* ── RUNNER TRACK ── */
 #track-wrap{
+  position:relative;
   background:linear-gradient(180deg,rgba(219,234,254,.55) 0%,rgba(237,233,254,.55) 100%);
   border-radius:22px;border:2.5px solid #c4b5fd;overflow:hidden;margin-bottom:14px;
   box-shadow:inset 0 2px 12px rgba(124,58,237,.07);padding:18px 16px 10px;
 }
+#scenery{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.cloud{position:absolute;font-size:22px;opacity:.55;animation:cloudDrift linear infinite;}
+@keyframes cloudDrift{0%{transform:translateX(110%)}100%{transform:translateX(-140%)}}
 #track{position:relative;height:56px;margin-bottom:6px;}
 .track-line{position:absolute;left:0;right:44px;bottom:14px;height:4px;border-radius:99px;background:repeating-linear-gradient(90deg,#c4b5fd 0 10px,transparent 10px 20px);}
-#flag{position:absolute;right:2px;bottom:2px;font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));}
+#flag{position:absolute;right:2px;bottom:2px;font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));animation:flagWave 1.4s ease-in-out infinite;}
+@keyframes flagWave{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
 #hurdles{position:absolute;left:0;right:44px;bottom:14px;height:34px;}
 .hurdle{position:absolute;bottom:0;font-size:20px;transform:translateX(-50%);transition:opacity .25s,transform .25s;}
 .hurdle.gone{opacity:0;transform:translateX(-50%) scale(.3) translateY(6px);}
@@ -61,6 +102,8 @@ body{
 @keyframes runnerJump{0%{transform:translateY(0)}40%{transform:translateY(-20px) rotate(-8deg)}100%{transform:translateY(0)}}
 #runner.trip{animation:runnerTrip .3s ease;}
 @keyframes runnerTrip{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(2px) rotate(10deg)}60%{transform:translateY(0) rotate(-6deg)}}
+#runner.blaze{animation:runnerBlaze .3s ease-in-out infinite;}
+@keyframes runnerBlaze{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}
 
 /* ── SENTENCE PANEL ── */
 #sentence-panel{
@@ -145,9 +188,12 @@ body{
 @keyframes cdPop{0%{transform:scale(2.5);opacity:0}50%{transform:scale(.9);opacity:1}100%{transform:scale(1);opacity:1}}
 
 /* ── RESULT ── */
-.result-box{display:none;background:white;border-radius:26px;padding:34px 26px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.12);border:3px solid #e9d5ff;}
-.re{font-size:64px;margin-bottom:10px;animation:bounce 1s ease infinite alternate;}
+.result-box{display:none;position:relative;overflow:hidden;background:white;border-radius:26px;padding:34px 26px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.12);border:3px solid #e9d5ff;}
+.re{font-size:64px;margin-bottom:10px;animation:bounce 1s ease infinite alternate,trophySpin 3s ease-in-out infinite;display:inline-block;}
 @keyframes bounce{0%{transform:translateY(0)}100%{transform:translateY(-14px)}}
+@keyframes trophySpin{0%,80%,100%{transform:rotateY(0)}90%{transform:rotateY(180deg)}}
+.result-box::before{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:medalShine 2.6s ease-in-out infinite;}
+@keyframes medalShine{0%{left:-60%}45%{left:120%}100%{left:120%}}
 .rt{font-family:'Fredoka One',cursive;font-size:30px;color:var(--purple);margin-bottom:16px;}
 .rsw{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-radius:18px;padding:18px;margin-bottom:18px;border:2px solid #c4b5fd;}
 .rs{font-family:'Fredoka One',cursive;font-size:70px;color:var(--purple);line-height:1;}
@@ -174,6 +220,10 @@ body{
 </style>
 </head>
 <body>
+
+<canvas id="fx-canvas"></canvas>
+<div id="screen-flash"></div>
+<div id="sound-toggle" onclick="toggleMute()" title="Toggle sound">🔊</div>
 
 <div class="bg-bubble" style="width:170px;height:170px;background:#c4b5fd;top:5%;left:2%;--d:9s;"></div>
 <div class="bg-bubble" style="width:110px;height:110px;background:#93c5fd;top:16%;right:4%;--d:7s;"></div>
@@ -205,6 +255,8 @@ body{
   <div class="game-title">⌨️ {{ game.title }}</div>
   <div class="game-sub">📚 {{ game.chapter }} · Type the sentence shown exactly as it appears!</div>
 
+  <div id="mascot-wrap"><div id="mascot">🐱</div></div>
+
   <div class="hud">
     <div class="hud-item hud-score"><div class="hud-num" id="score-display">0</div><div class="hud-label">⚡ Score</div></div>
     <div class="hud-item hud-timer"><div class="hud-num" id="timer-display">0</div><div class="hud-label">⏱ Seconds</div></div>
@@ -216,6 +268,11 @@ body{
 
   <!-- RUNNER TRACK -->
   <div id="track-wrap">
+    <div id="scenery">
+      <span class="cloud" style="top:4px;--dur:14s;animation-duration:14s;">☁️</span>
+      <span class="cloud" style="top:14px;--dur:19s;animation-duration:19s;animation-delay:-6s;">☁️</span>
+      <span class="cloud" style="top:2px;--dur:22s;animation-duration:22s;animation-delay:-13s;font-size:16px;">✨</span>
+    </div>
     <div id="track">
       <div class="track-line"></div>
       <div id="hurdles"></div>
@@ -273,22 +330,46 @@ let order=[], idx=0, target='', mistakesThisSentence=0, sentenceStart=0;
 let charsTyped=0, wpmStart=null, lastValue='';
 
 // ── AUDIO ─────────────────────────────────────────────
-let audioCtx=null;
+let audioCtx=null, muted=(localStorage.getItem('wc_muted')==='1');
 function getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
 function tone(f,type,dur,vol,delay){
+  if(muted)return;
   try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();
   o.connect(g);g.connect(c.destination);o.type=type;o.frequency.setValueAtTime(f,c.currentTime+delay);
   g.gain.setValueAtTime(0,c.currentTime+delay);g.gain.linearRampToValueAtTime(vol,c.currentTime+delay+.015);
   g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);
   o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur+.06);}catch(e){}
 }
-const sndKey=()=>tone(880,'square',.05,.1,0);
-const sndCorrect=()=>{tone(523,'sine',.14,.4,0);tone(659,'sine',.14,.45,.07);tone(784,'sine',.17,.5,.14);tone(1047,'square',.2,.55,.22);};
-const sndStreak=()=>[784,988,1175,1568,2093].forEach((f,i)=>tone(f,'square',.12,.6,i*.06));
-const sndWrong=()=>{tone(220,'sawtooth',.1,.35,0);};
-const sndCd=(n)=>n>0?tone(660,'square',.18,.45,0):tone(880,'triangle',.35,.6,0);
-const sndVictory=()=>{const ns=[523,659,784,1047,784,1047,1319,1568],ts=[0,.08,.16,.28,.44,.56,.68,.84];ns.forEach((f,i)=>tone(f,'sine',.22,.6,ts[i]));};
-const sndJump=()=>tone(700,'sine',.12,.25,0);
+function noiseBurst(dur,vol,delay){
+  if(muted)return;
+  try{const c=getACtx();const bufSize=c.sampleRate*dur;const buf=c.createBuffer(1,bufSize,c.sampleRate);const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*(1-i/bufSize);
+  const src=c.createBufferSource();src.buffer=buf;const g=c.createGain();g.gain.setValueAtTime(vol,c.currentTime+delay);
+  g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);
+  src.connect(g);g.connect(c.destination);src.start(c.currentTime+delay);}catch(e){}
+}
+function toggleMute(){
+  muted=!muted;localStorage.setItem('wc_muted',muted?'1':'0');
+  document.getElementById('sound-toggle').textContent=muted?'🔇':'🔊';
+  document.getElementById('sound-toggle').classList.toggle('off',muted);
+  if(!muted)getACtx();
+}
+(function(){const btn=document.getElementById('sound-toggle');btn.textContent=muted?'🔇':'🔊';btn.classList.toggle('off',muted);})();
+
+const sndKey=()=>tone(760+Math.random()*260,'square',.05,.09,0);
+const sndCorrect=()=>{tone(523,'sine',.14,.4,0);tone(659,'sine',.14,.45,.06);tone(784,'sine',.17,.5,.12);tone(1047,'square',.22,.5,.19);tone(1319,'sine',.18,.3,.26);};
+const sndStreak=()=>{[784,988,1175,1568,2093,2637].forEach((f,i)=>tone(f,'square',.13,.55,i*.055));noiseBurst(.2,.12,0);};
+const sndWrong=()=>{tone(220,'sawtooth',.1,.32,0);tone(160,'sawtooth',.14,.22,.03);};
+const sndCd=(n)=>n>0?tone(660,'square',.18,.45,0):(tone(880,'triangle',.35,.6,0),tone(1108,'triangle',.35,.4,.02));
+const sndVictory=()=>{
+  const ns=[523,659,784,1047,784,1047,1319,1568,1976],ts=[0,.09,.18,.3,.46,.58,.7,.86,1.02];
+  ns.forEach((f,i)=>tone(f,'sine',.24,.55,ts[i]));
+  [131,196,262].forEach((f,i)=>tone(f,'triangle',.9,.28,i*.34));
+  noiseBurst(.5,.1,.9);
+};
+const sndJump=()=>tone(700+Math.random()*80,'sine',.11,.22,0);
+const sndPowerup=()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,'triangle',.16,.42,i*.05));
+const sndWhoosh=()=>noiseBurst(.28,.14,0);
 
 // ── UTILS ─────────────────────────────────────────────
 function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
@@ -316,6 +397,82 @@ function spawnConfetti(x,y){
     c.style.cssText=`background:${col};left:${x}px;top:${y}px;--tx:${(Math.random()-.5)*240}px;--ty:${-130-Math.random()*180}px;--rot:${Math.random()*720}deg;--d:${1+Math.random()*.7}s;--r:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.12}s`;
     document.body.appendChild(c);c.addEventListener('animationend',()=>c.remove());
   }
+}
+
+// ── STARFIELD BACKGROUND ──────────────────────────────
+const fxCanvas=document.getElementById('fx-canvas');
+const fxCtx=fxCanvas.getContext('2d');
+let stars=[];
+function resizeFx(){fxCanvas.width=window.innerWidth;fxCanvas.height=window.innerHeight;}
+window.addEventListener('resize',resizeFx);resizeFx();
+for(let i=0;i<55;i++){stars.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,r:.6+Math.random()*1.8,a:Math.random(),s:.004+Math.random()*.012,hue:[ '#c4b5fd','#93c5fd','#fbcfe8','#fde68a'][Math.floor(Math.random()*4)]});}
+function drawFx(){
+  fxCtx.clearRect(0,0,fxCanvas.width,fxCanvas.height);
+  stars.forEach(st=>{
+    st.a+=st.s;const op=(Math.sin(st.a)+1)/2*.55+.1;
+    fxCtx.globalAlpha=op;fxCtx.fillStyle=st.hue;
+    fxCtx.beginPath();fxCtx.arc(st.x,st.y,st.r,0,Math.PI*2);fxCtx.fill();
+  });
+  fxCtx.globalAlpha=1;
+  requestAnimationFrame(drawFx);
+}
+drawFx();
+
+// ── MASCOT ─────────────────────────────────────────────
+const mascotFaces={idle:'🐱',happy:'😺',fire:'🙀',sad:'😿',win:'😻'};
+function mascotReact(state){
+  const m=document.getElementById('mascot');
+  m.classList.remove('happy','sad','fire');
+  m.textContent=mascotFaces[state]||mascotFaces.idle;
+  if(state==='happy'||state==='fire'||state==='win')m.classList.add(state==='fire'?'fire':'happy');
+  if(state==='sad')m.classList.add('sad');
+  if(state==='happy'||state==='fire'||state==='win'){
+    const wrap=document.getElementById('mascot-wrap');
+    for(let i=0;i<3;i++){
+      const sp=document.createElement('div');sp.className='mascot-spark';
+      sp.textContent=['✨','⭐','💫'][i%3];
+      sp.style.left=(46+i*10)+'%';sp.style.bottom='6px';
+      sp.style.setProperty('--sx',((Math.random()-.5)*60)+'px');
+      wrap.appendChild(sp);sp.addEventListener('animationend',()=>sp.remove());
+    }
+  }
+  if(state!=='fire'){
+    clearTimeout(mascotReact._t);
+    mascotReact._t=setTimeout(()=>{m.classList.remove('happy','sad','fire');m.textContent=mascotFaces.idle;},700);
+  }
+}
+
+// ── COMBO TEXT ─────────────────────────────────────────
+function comboText(txt,color){
+  const e=document.createElement('div');e.className='combo-text';e.textContent=txt;
+  if(color)e.style.webkitTextStroke='2px '+color;
+  document.body.appendChild(e);
+  e.addEventListener('animationend',()=>e.remove());
+}
+
+// ── SCREEN FX ──────────────────────────────────────────
+function screenShake(){
+  const w=document.querySelector('.wrap');
+  w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake');
+  const fl=document.getElementById('screen-flash');
+  fl.className='';void fl.offsetWidth;fl.classList.add('hit');
+}
+function screenWin(){
+  const fl=document.getElementById('screen-flash');
+  fl.className='';void fl.offsetWidth;fl.classList.add('win');
+}
+
+// ── FIRE TRAIL ─────────────────────────────────────────
+function fireTrailBurst(){
+  const runner=document.getElementById('runner');
+  const rect=runner.getBoundingClientRect();
+  const trackRect=document.getElementById('track').getBoundingClientRect();
+  const bit=document.createElement('div');bit.className='fire-bit';
+  bit.textContent=['🔥','✨','⚡'][Math.floor(Math.random()*3)];
+  bit.style.left=(rect.left-trackRect.left-4+Math.random()*8)+'px';
+  bit.style.bottom=(4+Math.random()*4)+'px';
+  document.getElementById('track').appendChild(bit);
+  bit.addEventListener('animationend',()=>bit.remove());
 }
 
 // ── COUNTDOWN ─────────────────────────────────────────
@@ -450,12 +607,13 @@ inp.addEventListener('input',()=>{
     if(value[i]===target[i]){
       if((i+1)%6===0) jumpRunner();
       sndKey();
+      if(streak>=3 && Math.random()<0.5) fireTrailBurst();
     } else {
       mistakesThisSentence++;mistakesTotal++;
       score=Math.max(0,score-1);
       document.getElementById('score-display').textContent=score;
       sndWrong();inp.classList.remove('bad');void inp.offsetWidth;inp.classList.add('bad');
-      tripRunner();
+      tripRunner();screenShake();mascotReact('sad');
     }
   }
   lastValue=value;
@@ -504,7 +662,17 @@ function handleSentenceComplete(){
   const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
   spawnParticles(cx,cy);
   spawnPop('+'+gained,'plus',cx-20,cy-10);
-  streak>=3?sndStreak():sndCorrect();
+
+  const runnerEl=document.getElementById('runner');
+  runnerEl.classList.toggle('blaze',perfect && streak>=3);
+
+  if(streak>=3){
+    sndStreak();sndPowerup();mascotReact('fire');
+    const msgs={3:'ON FIRE! 🔥',4:'BLAZING! ⚡',5:'UNSTOPPABLE! 💥'};
+    comboText(msgs[streak]||`LEGENDARY x${streak}! 🌟`,'#f97316');
+  } else {
+    sndCorrect();mascotReact('happy');
+  }
   jumpRunner();
 
   document.getElementById('score-display').textContent=score;
@@ -559,8 +727,8 @@ function updateStreak(){
 // ── END GAME ──────────────────────────────────────────
 async function endGame(){
   clearInterval(timerInt);clearInterval(speedInt);
-  sndVictory();
-  for(let i=0;i<6;i++) setTimeout(()=>spawnConfetti(window.innerWidth*(.2+Math.random()*.6),window.innerHeight*(.15+Math.random()*.4)),i*150);
+  sndVictory();screenWin();mascotReact('win');
+  for(let i=0;i<9;i++) setTimeout(()=>spawnConfetti(window.innerWidth*(.1+Math.random()*.8),window.innerHeight*(.1+Math.random()*.5)),i*130);
 
   const acc=totalTargetChars>0?Math.max(0,Math.round(100-(mistakesTotal/totalTargetChars*100))):100;
   const emoji=score>=TOTAL*70?'🏆':score>=TOTAL*45?'🌟':'🎉';
@@ -603,7 +771,10 @@ function restartGame(){
   document.getElementById('answer-input').value='';
   document.getElementById('answer-input').disabled=true;
   document.getElementById('runner').style.left='0px';
+  document.getElementById('runner').classList.remove('blaze','jump','trip');
   document.getElementById('hurdles').innerHTML='';
+  document.getElementById('screen-flash').className='';
+  mascotReact('idle');
   startCountdown();
 }
 </script>
