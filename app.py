@@ -1167,16 +1167,24 @@ def create_game():
     if "teacher" not in session and "admin" not in session: return redirect("/teacher_login")
     chapter_no = int(request.form.get("chapter_no",0))
     sel_class  = request.form.get("student_class","6")
+    sel_game_type = request.form.get("game_type", "matching")
     game = Game(title=request.form["title"], chapter=request.form["chapter"],
         chapter_no=chapter_no, student_class=sel_class,
         section=request.form["section"], created_at=now_str(),
-        game_type=request.form.get("game_type", "matching"))
+        game_type=sel_game_type)
     db.session.add(game); db.session.flush()
     terms = request.form.getlist("term")
     definitions = request.form.getlist("definition")
     for t, d in zip(terms, definitions):
-        if t.strip() and d.strip():
-            db.session.add(GamePair(game_id=game.id, term=t.strip(), definition=d.strip()))
+        t = t.strip(); d = d.strip()
+        if sel_game_type == "word_cloud":
+            # Sentence Typing game: only the sentence (term) is required
+            if t:
+                db.session.add(GamePair(game_id=game.id, term=t, definition=d))
+        else:
+            # Matching Pairs game: unchanged, both term and definition required
+            if t and d:
+                db.session.add(GamePair(game_id=game.id, term=t, definition=d))
     cfg = ChapterConfig.query.filter_by(chapter_no=chapter_no, student_class=sel_class).first()
     if cfg: cfg.has_game = True
     db.session.commit()
