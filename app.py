@@ -687,6 +687,50 @@ def delete_section():
         db.session.commit()
     return redirect("/students")
 
+@app.route("/download_student_template")
+def download_student_template():
+    # Blank Excel with the exact required headers (+ one greyed-out example
+    # row) so teachers can't typo a column name when importing students.
+    if "admin" not in session:
+        return redirect("/login")
+
+    from io import BytesIO
+    from flask import send_file
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Students"
+
+    headers = ["Admission_No", "Student_Name", "DOB", "Class", "Section", "Roll_No", "Parent_Mobile"]
+    header_fill = PatternFill(start_color="0F4C81", end_color="0F4C81", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True, name="Arial", size=11)
+    for col, h in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    # One example row, styled grey/italic so it's obviously a sample to replace
+    example = ["100234", "Aarav Sharma", "12-05-2014", "6", "6A", "12", "9876543210"]
+    sample_font = Font(italic=True, color="999999", name="Arial", size=10)
+    for col, val in enumerate(example, start=1):
+        cell = ws.cell(row=2, column=col, value=val)
+        cell.font = sample_font
+
+    widths = [16, 24, 14, 10, 12, 10, 16]
+    for col, w in enumerate(widths, start=1):
+        ws.column_dimensions[get_column_letter(col)].width = w
+    ws.row_dimensions[1].height = 22
+    ws.freeze_panes = "A2"
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name="student_import_template.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 @app.route("/upload_students", methods=["GET","POST"])
 def upload_students():
 
