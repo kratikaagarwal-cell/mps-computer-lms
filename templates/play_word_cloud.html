@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>☁️ {{ game.title }}</title>
+<title>⌨️ {{ game.title }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -20,7 +20,6 @@ body{
   background:linear-gradient(160deg,#dbeafe 0%,#ede9fe 40%,#fce7f3 70%,#fef9c3 100%);
   overflow-x:hidden;
 }
-/* background bubbles */
 .bg-bubble{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:.25;animation:bgFloat var(--d,8s) ease-in-out infinite alternate;}
 @keyframes bgFloat{0%{transform:translateY(0)}100%{transform:translateY(-22px)}}
 
@@ -41,60 +40,46 @@ body{
 .hud-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-top:2px;}
 
 /* ── PROGRESS ── */
-.prog-wrap{margin-bottom:12px;}
+.prog-wrap{margin-bottom:14px;}
 .prog-bg{height:9px;background:rgba(0,0,0,.07);border-radius:99px;overflow:hidden;}
 .prog-fill{height:100%;border-radius:99px;width:0%;background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399);transition:width .4s;}
 
-/* ── CLOUD ARENA ── */
-#arena{
-  position:relative;width:100%;height:300px;
+/* ── RUNNER TRACK ── */
+#track-wrap{
   background:linear-gradient(180deg,rgba(219,234,254,.55) 0%,rgba(237,233,254,.55) 100%);
-  border-radius:26px;border:2.5px solid #c4b5fd;overflow:hidden;margin-bottom:14px;
-  box-shadow:inset 0 2px 12px rgba(124,58,237,.07);
+  border-radius:22px;border:2.5px solid #c4b5fd;overflow:hidden;margin-bottom:14px;
+  box-shadow:inset 0 2px 12px rgba(124,58,237,.07);padding:18px 16px 10px;
 }
-/* The falling/drifting definition clouds */
-.def-cloud{
-  position:absolute;
-  padding:9px 18px;border-radius:99px;
-  font-family:'Fredoka One',cursive;font-size:clamp(11px,2vw,15px);
-  white-space:nowrap;user-select:none;cursor:default;
-  box-shadow:var(--shadow);border:2.5px solid transparent;
-  top:var(--top,40%);
-  /* starts off right edge, moves left */
-  transform:translateX(calc(100vw + 20px));
-  transition:none;
-}
-.def-cloud.moving{
-  transition:transform var(--spd,10s) linear;
-  transform:translateX(-110%);
-}
-.def-cloud.c0{background:#f0fdf4;border-color:#86efac;color:#15803d;}
-.def-cloud.c1{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;}
-.def-cloud.c2{background:#fdf4ff;border-color:#e879f9;color:#a21caf;}
-.def-cloud.c3{background:#fff7ed;border-color:#fb923c;color:#c2410c;}
-.def-cloud.c4{background:#fefce8;border-color:#fde047;color:#a16207;}
-.def-cloud.c5{background:#fff1f2;border-color:#fda4af;color:#be123c;}
+#track{position:relative;height:56px;margin-bottom:6px;}
+.track-line{position:absolute;left:0;right:44px;bottom:14px;height:4px;border-radius:99px;background:repeating-linear-gradient(90deg,#c4b5fd 0 10px,transparent 10px 20px);}
+#flag{position:absolute;right:2px;bottom:2px;font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));}
+#hurdles{position:absolute;left:0;right:44px;bottom:14px;height:34px;}
+.hurdle{position:absolute;bottom:0;font-size:20px;transform:translateX(-50%);transition:opacity .25s,transform .25s;}
+.hurdle.gone{opacity:0;transform:translateX(-50%) scale(.3) translateY(6px);}
+#runner{position:absolute;left:0;bottom:6px;font-size:32px;transition:left .18s ease-out;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18));}
+#runner.jump{animation:runnerJump .35s ease;}
+@keyframes runnerJump{0%{transform:translateY(0)}40%{transform:translateY(-20px) rotate(-8deg)}100%{transform:translateY(0)}}
+#runner.trip{animation:runnerTrip .3s ease;}
+@keyframes runnerTrip{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(2px) rotate(10deg)}60%{transform:translateY(0) rotate(-6deg)}}
 
-.def-cloud.burst{
-  animation:burstOut .45s ease forwards!important;
-  transition:none!important;
-}
-@keyframes burstOut{
-  0%  {transform:scale(1);opacity:1;}
-  40% {transform:scale(1.5);opacity:1;}
-  100%{transform:scale(0);opacity:0;}
-}
-
-/* ── ACTIVE TERM PANEL ── */
-#term-panel{
-  background:white;border-radius:20px;padding:16px 20px;
+/* ── SENTENCE PANEL ── */
+#sentence-panel{
+  background:white;border-radius:20px;padding:18px 22px;
   box-shadow:var(--shadow);border:2.5px solid #c4b5fd;
-  margin-bottom:12px;text-align:center;min-height:90px;
+  margin-bottom:12px;text-align:center;min-height:96px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-#term-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;margin-bottom:6px;}
-#current-term{font-family:'Fredoka One',cursive;font-size:clamp(18px,4vw,30px);color:var(--purple);line-height:1.3;}
-#hint-text{font-size:12px;color:#6b7280;font-weight:700;margin-top:5px;display:none;}
+#hint-badge{display:none;background:var(--purple-l);color:var(--purple);font-size:11px;font-weight:800;padding:4px 12px;border-radius:99px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+#sentence-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;margin-bottom:8px;}
+#sentence-display{font-family:'Nunito',sans-serif;font-size:clamp(16px,3.4vw,24px);font-weight:800;line-height:1.7;letter-spacing:.5px;word-break:break-word;}
+#sentence-display span{color:#c7c9d1;position:relative;}
+#sentence-display span.correct{color:#16a34a;}
+#sentence-display span.incorrect{color:#dc2626;background:#fee2e2;border-radius:3px;}
+#sentence-display span.sp{border-bottom:2px solid #e5e7eb;margin:0 1px;}
+#sentence-display span.sp.correct{border-color:#86efac;}
+#sentence-display span.sp.incorrect{border-color:#fca5a5;}
+#sentence-display span.current{border-left:2.5px solid var(--purple);animation:caretBlink 1s step-end infinite;}
+@keyframes caretBlink{50%{border-color:transparent;}}
 
 /* ── SPEED BAR ── */
 .speed-wrap{margin-bottom:12px;}
@@ -113,15 +98,14 @@ body{
   flex:1;padding:14px 18px;border-radius:16px;
   border:2.5px solid #c4b5fd;font-family:'Nunito',sans-serif;
   font-size:16px;font-weight:800;outline:none;background:white;color:#374151;
-  transition:border-color .2s,box-shadow .2s;
+  transition:border-color .2s,box-shadow .2s;letter-spacing:.5px;
 }
 #answer-input:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(124,58,237,.12);}
-#answer-input.ok {border-color:#4ade80;background:#f0fdf4;animation:flashOk .35s;}
-#answer-input.bad{border-color:#f87171;background:#fff5f5;animation:flashBad .35s;}
-@keyframes flashOk {0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
-@keyframes flashBad{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-#hint-btn{padding:13px 16px;border-radius:14px;background:var(--purple-l);color:var(--purple);border:2px solid #c4b5fd;cursor:pointer;font-size:18px;transition:transform .15s;}
-#hint-btn:hover{transform:scale(1.1);}
+#answer-input.bad{border-color:#f87171;background:#fff5f5;animation:flashBad .3s;}
+@keyframes flashBad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#skip-btn{padding:13px 16px;border-radius:14px;background:var(--purple-l);color:var(--purple);border:2px solid #c4b5fd;cursor:pointer;font-size:13px;font-weight:800;transition:transform .15s;white-space:nowrap;}
+#skip-btn:hover{transform:scale(1.05);}
+#skip-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 
 /* ── SCORE POPS ── */
 .spop{position:fixed;font-family:'Fredoka One',cursive;font-size:22px;pointer-events:none;z-index:999;animation:floatUp .8s ease forwards;}
@@ -142,13 +126,13 @@ body{
 .si{font-size:64px;margin-bottom:10px;animation:wig 2s ease-in-out infinite;}
 @keyframes wig{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.1)}}
 .st{font-family:'Fredoka One',cursive;font-size:clamp(22px,6vw,42px);color:var(--purple);margin-bottom:6px;}
-.how{background:white;border-radius:18px;padding:16px 22px;border:2px solid #ddd6fe;max-width:400px;margin:16px auto 20px;text-align:left;}
+.how{background:white;border-radius:18px;padding:16px 22px;border:2px solid #ddd6fe;max-width:420px;margin:16px auto 20px;text-align:left;}
 .how h3{font-size:13px;color:var(--purple);font-weight:900;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
 .how li{font-size:13px;color:#4b5563;font-weight:700;margin-bottom:5px;list-style:none;padding-left:22px;position:relative;}
 .how li::before{position:absolute;left:0;}
-.how li:nth-child(1)::before{content:'☁️';}
+.how li:nth-child(1)::before{content:'👀';}
 .how li:nth-child(2)::before{content:'⌨️';}
-.how li:nth-child(3)::before{content:'⚡';}
+.how li:nth-child(3)::before{content:'🏃';}
 .how li:nth-child(4)::before{content:'🏆';}
 .best-badge{display:inline-block;background:white;border:2px solid #fbbf24;border-radius:99px;padding:5px 18px;color:#92400e;font-size:13px;font-weight:800;margin-bottom:22px;box-shadow:0 3px 10px rgba(251,191,36,.2);}
 .play-btn{padding:15px 50px;border-radius:99px;font-family:'Fredoka One',cursive;font-size:22px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;border:none;cursor:pointer;box-shadow:0 6px 24px rgba(124,58,237,.35),0 2px 0 #5b21b6;transition:transform .15s;animation:bPulse 2s infinite;}
@@ -183,10 +167,9 @@ body{
 .btn-green{background:linear-gradient(135deg,#16a34a,#15803d);color:white;}
 
 @media(max-width:520px){
-  #arena{height:220px;}
-  .def-cloud{font-size:11px;padding:6px 12px;}
+  #sentence-display{font-size:16px;}
   .input-row{flex-direction:column;}
-  #answer-input{width:100%;}
+  #answer-input,#skip-btn{width:100%;}
 }
 </style>
 </head>
@@ -199,16 +182,16 @@ body{
 
 <!-- START -->
 <div id="start-overlay">
-  <div class="si">☁️</div>
+  <div class="si">🏃⌨️</div>
   <div class="st">{{ game.title }}</div>
   <p style="color:#6b7280;font-size:13px;font-weight:700;margin-bottom:2px;">📚 {{ game.chapter }}</p>
   <div class="how">
     <h3>How to Play</h3>
     <ul>
-      <li>Definitions float across as clouds</li>
-      <li>See a definition → type the matching TERM</li>
-      <li>Press Enter to submit — faster = more points!</li>
-      <li>Clear all {{ pairs_data|length }} clouds to win 🏆</li>
+      <li>Read the sentence shown on screen</li>
+      <li>Type it out exactly — same spelling, spacing &amp; punctuation</li>
+      <li>Your runner jumps forward as you type correctly</li>
+      <li>Finish all {{ pairs_data|length }} sentences to win 🏆</li>
     </ul>
   </div>
   {% if existing %}<div class="best-badge">⭐ Your best: {{ existing.score }} pts</div>{% endif %}
@@ -219,39 +202,46 @@ body{
 <div id="countdown"><div class="cd" id="cd-num">3</div></div>
 
 <div class="wrap">
-  <div class="game-title">☁️ {{ game.title }}</div>
-  <div class="game-sub">📚 {{ game.chapter }} · Type the TERM for each floating definition!</div>
+  <div class="game-title">⌨️ {{ game.title }}</div>
+  <div class="game-sub">📚 {{ game.chapter }} · Type the sentence shown exactly as it appears!</div>
 
   <div class="hud">
     <div class="hud-item hud-score"><div class="hud-num" id="score-display">0</div><div class="hud-label">⚡ Score</div></div>
     <div class="hud-item hud-timer"><div class="hud-num" id="timer-display">0</div><div class="hud-label">⏱ Seconds</div></div>
-    <div class="hud-item hud-left"><div class="hud-num" id="left-display">{{ pairs_data|length }}</div><div class="hud-label">☁️ Left</div></div>
+    <div class="hud-item hud-left"><div class="hud-num" id="left-display">{{ pairs_data|length }}</div><div class="hud-label">📝 Left</div></div>
     <div class="hud-item hud-speed"><div class="hud-num" id="wpm-display">0</div><div class="hud-label">🔥 WPM</div></div>
   </div>
 
   <div class="prog-wrap"><div class="prog-bg"><div class="prog-fill" id="prog-fill"></div></div></div>
 
-  <!-- CLOUD ARENA: definitions float here -->
-  <div id="arena"></div>
+  <!-- RUNNER TRACK -->
+  <div id="track-wrap">
+    <div id="track">
+      <div class="track-line"></div>
+      <div id="hurdles"></div>
+      <div id="runner">🏃</div>
+      <div id="flag">🏁</div>
+    </div>
+  </div>
 
-  <!-- ACTIVE definition panel -->
-  <div id="term-panel">
-    <div id="term-label">☁️ Active Definition — Type the Term Below &amp; Press Enter</div>
-    <div id="current-term" style="font-size:15px;color:#6b7280;font-weight:700;">Waiting for a cloud…</div>
-    <div id="hint-text"></div>
+  <!-- SENTENCE panel -->
+  <div id="sentence-panel">
+    <div id="hint-badge"></div>
+    <div id="sentence-label">👀 Type this sentence exactly</div>
+    <div id="sentence-display">Get ready…</div>
   </div>
 
   <!-- Speed bar -->
   <div class="speed-wrap">
-    <div class="speed-label">⚡ Speed Bonus — Answer Quickly for More Points!</div>
+    <div class="speed-label">⚡ Speed Bonus — Type Quickly for More Points!</div>
     <div class="speed-bg"><div class="speed-fill" id="speed-fill"></div></div>
   </div>
 
   <div class="streak-wrap"><span class="streak-badge" id="streak-badge" style="display:none"></span></div>
 
   <div class="input-row">
-    <input id="answer-input" type="text" placeholder="Type the TERM and press Enter…" autocomplete="off" spellcheck="false" disabled />
-    <button id="hint-btn" onclick="showHint()" title="Hint (-3 pts)">💡</button>
+    <input id="answer-input" type="text" placeholder="Start typing the sentence above…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled />
+    <button id="skip-btn" onclick="skipSentence()" title="Skip this sentence (-10 pts)">⏭ Skip</button>
   </div>
 
   <!-- RESULT -->
@@ -272,18 +262,15 @@ body{
 
 <script>
 // ── DATA ──────────────────────────────────────────────
-const ALL_PAIRS = {{ pairs_data | tojson }};
-const GAME_ID   = {{ game.id }};
-const TOTAL     = ALL_PAIRS.length;
+const ALL_SENTENCES = {{ pairs_data | tojson }};   // [{id, term, definition}] — "term" is the sentence to type
+const GAME_ID = {{ game.id }};
+const TOTAL   = ALL_SENTENCES.length;
 
 // ── STATE ─────────────────────────────────────────────
-let score=0, cleared=0, secs=0, streak=0, wrongs=0;
+let score=0, cleared=0, secs=0, streak=0, mistakesTotal=0, totalTargetChars=0;
 let timerInt=null, speedInt=null;
-let activeCloud=null;   // { pair, el, startTime }
-let clearedIds=new Set();
-let pendingPairs=[];    // pairs not yet spawned / still in flight
-let charsTyped=0, wpmStart=null;
-let speedPct=100;
+let order=[], idx=0, target='', mistakesThisSentence=0, sentenceStart=0;
+let charsTyped=0, wpmStart=null, lastValue='';
 
 // ── AUDIO ─────────────────────────────────────────────
 let audioCtx=null;
@@ -295,14 +282,13 @@ function tone(f,type,dur,vol,delay){
   g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);
   o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur+.06);}catch(e){}
 }
-const sndKey=()=>tone(880,'square',.06,.12,0);
+const sndKey=()=>tone(880,'square',.05,.1,0);
 const sndCorrect=()=>{tone(523,'sine',.14,.4,0);tone(659,'sine',.14,.45,.07);tone(784,'sine',.17,.5,.14);tone(1047,'square',.2,.55,.22);};
 const sndStreak=()=>[784,988,1175,1568,2093].forEach((f,i)=>tone(f,'square',.12,.6,i*.06));
-const sndWrong=()=>{tone(220,'sawtooth',.12,.4,0);tone(160,'square',.12,.45,.1);};
-const sndHint=()=>tone(440,'sine',.2,.3,0);
+const sndWrong=()=>{tone(220,'sawtooth',.1,.35,0);};
 const sndCd=(n)=>n>0?tone(660,'square',.18,.45,0):tone(880,'triangle',.35,.6,0);
 const sndVictory=()=>{const ns=[523,659,784,1047,784,1047,1319,1568],ts=[0,.08,.16,.28,.44,.56,.68,.84];ns.forEach((f,i)=>tone(f,'sine',.22,.6,ts[i]));};
-const sndBubble=()=>tone(350,'sine',.15,.15,0);
+const sndJump=()=>tone(700,'sine',.12,.25,0);
 
 // ── UTILS ─────────────────────────────────────────────
 function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
@@ -353,179 +339,173 @@ function startCountdown(){
 
 // ── GAME START ────────────────────────────────────────
 function startGame(){
-  pendingPairs=shuffle([...ALL_PAIRS]);
+  order=shuffle([...ALL_SENTENCES]);
+  idx=0;
+  totalTargetChars=order.reduce((s,p)=>s+p.term.length,0);
   document.getElementById('answer-input').disabled=false;
-  document.getElementById('answer-input').focus();
+  wpmStart=Date.now();
 
-  // Launch clouds with staggered delays
-  pendingPairs.forEach((pair,i)=>{
-    setTimeout(()=>spawnCloud(pair), i*2800);
-  });
+  loadSentence();
 
   timerInt=setInterval(()=>{secs++;document.getElementById('timer-display').textContent=secs;},1000);
-
-  // Speed bar decay
   speedInt=setInterval(()=>{
-    if(!activeCloud)return;
-    const elapsed=(Date.now()-activeCloud.startTime)/1000;
-    speedPct=Math.max(0,100-Math.floor(elapsed/20*100));
+    if(!sentenceStart)return;
+    const elapsed=(Date.now()-sentenceStart)/1000;
+    const speedPct=Math.max(0,100-Math.floor(elapsed/15*100));
     document.getElementById('speed-fill').style.width=speedPct+'%';
   },200);
 }
 
-// ── CLOUD SPAWNING ────────────────────────────────────
-let colorIdx=0;
-const CLOUD_SPEED=16; // seconds to cross arena (fixed, predictable)
+// ── SENTENCE LOADING ──────────────────────────────────
+function loadSentence(){
+  const item=order[idx];
+  target=item.term;
+  mistakesThisSentence=0;
+  sentenceStart=Date.now();
+  lastValue='';
 
-function spawnCloud(pair){
-  if(clearedIds.has(pair.id)) return; // already done
-
-  const arena=document.getElementById('arena');
-  const el=document.createElement('div');
-  const ci=colorIdx%6;colorIdx++;
-  el.className=`def-cloud c${ci}`;
-  el.textContent=pair.definition;    // ← DEFINITION shown in cloud
-  el.dataset.id=String(pair.id);
-
-  // Random vertical lane
-  const topPct=8+Math.random()*60;
-  el.style.setProperty('--top',topPct+'%');
-  el.style.setProperty('--spd',CLOUD_SPEED+'s');
-  el.style.top=topPct+'%';
-
-  arena.appendChild(el);
-  sndBubble();
-
-  // Trigger animation on next frame
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    el.classList.add('moving');
-  }));
-
-  // If no active cloud yet, make this one active
-  if(!activeCloud && !clearedIds.has(pair.id)){
-    setActiveCloud(pair,el);
+  const hintEl=document.getElementById('hint-badge');
+  if(item.definition && item.definition.trim()){
+    hintEl.textContent='💡 '+item.definition.trim();
+    hintEl.style.display='inline-block';
+  } else {
+    hintEl.style.display='none';
   }
 
-  // When cloud exits screen, re-queue if not cleared
-  el.addEventListener('transitionend',()=>{
-    if(clearedIds.has(pair.id)){if(el.parentNode)el.remove();return;}
-    if(el.parentNode)el.remove();
-    // Was this the active one?
-    if(activeCloud && activeCloud.el===el){
-      activeCloud=null;
-      wrongs++;streak=0;updateStreak();
-      score=Math.max(0,score-4);
-      document.getElementById('score-display').textContent=score;
-      spawnPop('-4','minus',window.innerWidth/2,100);
-      document.getElementById('current-term').textContent='Waiting for a cloud…';
-      document.getElementById('hint-text').style.display='none';
-    }
-    // Re-spawn after a gap
-    if(!clearedIds.has(pair.id)){
-      setTimeout(()=>{
-        if(!clearedIds.has(pair.id)) spawnCloud(pair);
-      },3000+Math.random()*2000);
-    }
-  });
-
-  // Click on cloud to make it active
-  el.addEventListener('click',()=>{
-    if(!clearedIds.has(pair.id)) setActiveCloud(pair,el);
-  });
-}
-
-function setActiveCloud(pair,el){
-  // Highlight old active
-  if(activeCloud && activeCloud.el && !clearedIds.has(activeCloud.pair.id)){
-    activeCloud.el.style.opacity='0.6';
-    activeCloud.el.style.transform=''; // don't mess with transition
+  const disp=document.getElementById('sentence-display');
+  disp.innerHTML='';
+  for(let i=0;i<target.length;i++){
+    const ch=target[i];
+    const span=document.createElement('span');
+    span.textContent=ch===' '?'\u00A0':ch;
+    if(ch===' ')span.classList.add('sp');
+    if(i===0)span.classList.add('current');
+    disp.appendChild(span);
   }
-  activeCloud={pair,el,startTime:Date.now()};
-  el.style.opacity='1';
-  el.style.outline='3px solid #7c3aed';
-  el.style.outlineOffset='3px';
 
-  // Show definition in panel
-  document.getElementById('current-term').textContent=pair.definition;
-  document.getElementById('current-term').style.fontSize='clamp(13px,2.5vw,18px)';
-  document.getElementById('current-term').style.color='#374151';
-  document.getElementById('hint-text').style.display='none';
-  document.getElementById('answer-input').value='';
-  document.getElementById('answer-input').focus();
-  speedPct=100;
+  document.getElementById('left-display').textContent=TOTAL-cleared;
+  document.getElementById('prog-fill').style.width=(cleared/TOTAL*100)+'%';
   document.getElementById('speed-fill').style.width='100%';
-  wpmStart=Date.now();charsTyped=0;
+
+  const inp=document.getElementById('answer-input');
+  inp.value='';
+  inp.maxLength=target.length;
+  inp.disabled=false;
+  inp.focus();
+
+  buildHurdles();
+  setRunnerProgress(0);
+
+  const skipBtn=document.getElementById('skip-btn');
+  skipBtn.disabled=true;
+  setTimeout(()=>{skipBtn.disabled=false;},1500);
 }
 
-// Auto-pick next visible cloud if none active
-function pickNextCloud(){
-  const arena=document.getElementById('arena');
-  const clouds=arena.querySelectorAll('.def-cloud:not(.burst)');
-  for(const el of clouds){
-    const id=parseInt(el.dataset.id);
-    if(!clearedIds.has(id)){
-      const pair=ALL_PAIRS.find(p=>p.id===id);
-      if(pair){setActiveCloud(pair,el);return;}
-    }
+// ── HURDLES / RUNNER ──────────────────────────────────
+function buildHurdles(){
+  const wrap=document.getElementById('hurdles');
+  wrap.innerHTML='';
+  const n=Math.min(5,Math.max(1,Math.floor(target.length/9)));
+  for(let i=1;i<=n;i++){
+    const pct=(i/(n+1))*100;
+    const h=document.createElement('div');
+    h.className='hurdle';
+    h.textContent='🚧';
+    h.style.left=pct+'%';
+    h.dataset.pct=pct;
+    wrap.appendChild(h);
   }
-  // No visible cloud — just wait
-  if(activeCloud){activeCloud=null;}
-  document.getElementById('current-term').textContent='Waiting for a cloud…';
+}
+function setRunnerProgress(correctLen){
+  const pct=target.length?Math.min(100,(correctLen/target.length)*100):0;
+  const track=document.getElementById('track');
+  const trackWidth=track.clientWidth-44; // leave room for flag
+  const runner=document.getElementById('runner');
+  runner.style.left=Math.max(0,(pct/100)*trackWidth)+'px';
+  document.querySelectorAll('#hurdles .hurdle').forEach(h=>{
+    if(parseFloat(h.dataset.pct)<=pct) h.classList.add('gone');
+    else h.classList.remove('gone');
+  });
+}
+function jumpRunner(){
+  const r=document.getElementById('runner');
+  r.classList.remove('jump');void r.offsetWidth;r.classList.add('jump');
+  sndJump();
+}
+function tripRunner(){
+  const r=document.getElementById('runner');
+  r.classList.remove('trip');void r.offsetWidth;r.classList.add('trip');
 }
 
 // ── INPUT HANDLING ────────────────────────────────────
 const inp=document.getElementById('answer-input');
 
 inp.addEventListener('input',()=>{
-  sndKey();charsTyped++;updateWPM();
-});
+  const value=inp.value;
+  charsTyped++;updateWPM();
 
-inp.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
-    e.preventDefault();
-    if(!activeCloud){return;}
-    const typed=inp.value.trim().toLowerCase();
-    const target=activeCloud.pair.term.trim().toLowerCase();   // ← compare to TERM
-    if(typed===target || normalise(typed)===normalise(target)){
-      handleCorrect();
+  // new character typed → check it
+  if(value.length>lastValue.length){
+    const i=value.length-1;
+    if(value[i]===target[i]){
+      if((i+1)%6===0) jumpRunner();
+      sndKey();
     } else {
-      handleWrong();
+      mistakesThisSentence++;mistakesTotal++;
+      score=Math.max(0,score-1);
+      document.getElementById('score-display').textContent=score;
+      sndWrong();inp.classList.remove('bad');void inp.offsetWidth;inp.classList.add('bad');
+      tripRunner();
     }
+  }
+  lastValue=value;
+
+  // find longest correct prefix (runner can't pass a mistake)
+  let correctLen=0;
+  while(correctLen<value.length && correctLen<target.length && value[correctLen]===target[correctLen]) correctLen++;
+
+  renderSentence(value,correctLen);
+  setRunnerProgress(correctLen);
+
+  if(value===target){
+    handleSentenceComplete();
   }
 });
 
-// Normalise: remove punctuation, extra spaces, lowercase
-function normalise(s){
-  return s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+function renderSentence(value,correctLen){
+  const spans=document.getElementById('sentence-display').children;
+  for(let i=0;i<spans.length;i++){
+    const span=spans[i];
+    span.classList.remove('correct','incorrect','current');
+    if(i<value.length){
+      span.classList.add(value[i]===target[i] ? 'correct' : 'incorrect');
+    }
+    if(i===value.length){
+      span.classList.add('current');
+    }
+  }
 }
 
-function handleCorrect(){
-  if(!activeCloud)return;
-  const pair=activeCloud.pair, el=activeCloud.el;
+function handleSentenceComplete(){
+  const perfect=mistakesThisSentence===0;
+  cleared++;
 
-  clearedIds.add(pair.id);
-  cleared++;streak++;
-
-  const base=40;
-  const speedBonus=Math.floor(speedPct*0.5);          // 0–50
-  const streakBonus=streak>=3?Math.floor(base*0.5):0; // 50% extra on streak
+  const secsTaken=Math.max(0.4,(Date.now()-sentenceStart)/1000);
+  const cps=target.length/secsTaken;
+  const base=50;
+  const speedBonus=Math.min(35,Math.floor(cps*4));
+  if(perfect){streak++;}else{streak=0;}
+  const streakBonus=(perfect && streak>=3)?Math.floor(base*0.5):0;
   const gained=base+speedBonus+streakBonus;
   score+=gained;
 
-  // Burst the cloud
-  el.style.transition='none';
-  el.classList.add('burst');
-  const rect=el.getBoundingClientRect();
+  const panel=document.getElementById('sentence-panel');
+  const rect=panel.getBoundingClientRect();
   const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  setTimeout(()=>{if(el.parentNode)el.remove();},500);
-
-  inp.classList.remove('ok','bad');inp.classList.add('ok');
-  setTimeout(()=>inp.classList.remove('ok'),400);
-  inp.value='';
-
   spawnParticles(cx,cy);
   spawnPop('+'+gained,'plus',cx-20,cy-10);
   streak>=3?sndStreak():sndCorrect();
+  jumpRunner();
 
   document.getElementById('score-display').textContent=score;
   document.getElementById('left-display').textContent=TOTAL-cleared;
@@ -533,33 +513,32 @@ function handleCorrect(){
   popHud('score-display');
   updateStreak();
 
-  activeCloud=null;
-  if(cleared>=TOTAL){setTimeout(endGame,500);return;}
-  setTimeout(pickNextCloud,200);
+  inp.disabled=true;
+
+  if(cleared>=TOTAL){
+    setTimeout(endGame,500);
+  } else {
+    idx++;
+    setTimeout(loadSentence,550);
+  }
 }
 
-function handleWrong(){
-  wrongs++;streak=0;updateStreak();
-  score=Math.max(0,score-5);
-  sndWrong();
-  inp.classList.remove('ok','bad');inp.classList.add('bad');
-  setTimeout(()=>inp.classList.remove('bad'),400);
-  const r=inp.getBoundingClientRect();
-  spawnPop('-5','minus',r.left+r.width/2,r.top-10);
+function skipSentence(){
+  if(inp.disabled)return;
+  mistakesTotal++;
+  score=Math.max(0,score-10);
+  streak=0;updateStreak();
   document.getElementById('score-display').textContent=score;
-}
-
-function showHint(){
-  if(!activeCloud)return;
-  sndHint();
-  score=Math.max(0,score-3);
-  document.getElementById('score-display').textContent=score;
-  spawnPop('-3','minus',window.innerWidth/2,80);
-  const term=activeCloud.pair.term;
-  // Reveal first letter + number of remaining letters
-  const hint=term[0].toUpperCase()+'_'.repeat(term.length-1)+' ('+term.length+' letters)';
-  document.getElementById('hint-text').textContent='💡 '+hint;
-  document.getElementById('hint-text').style.display='block';
+  const r=document.getElementById('skip-btn').getBoundingClientRect();
+  spawnPop('-10','minus',r.left+r.width/2,r.top-10);
+  cleared++;
+  inp.disabled=true;
+  if(cleared>=TOTAL){
+    setTimeout(endGame,400);
+  } else {
+    idx++;
+    setTimeout(loadSentence,400);
+  }
 }
 
 function updateWPM(){
@@ -583,7 +562,7 @@ async function endGame(){
   sndVictory();
   for(let i=0;i<6;i++) setTimeout(()=>spawnConfetti(window.innerWidth*(.2+Math.random()*.6),window.innerHeight*(.15+Math.random()*.4)),i*150);
 
-  const acc=Math.round((cleared/(cleared+wrongs))*100)||100;
+  const acc=totalTargetChars>0?Math.max(0,Math.round(100-(mistakesTotal/totalTargetChars*100))):100;
   const emoji=score>=TOTAL*70?'🏆':score>=TOTAL*45?'🌟':'🎉';
   const title=score>=TOTAL*70?'LEGENDARY! 🔥':score>=TOTAL*45?'EXCELLENT! ⭐':'WELL DONE! 🎊';
   document.getElementById('re').textContent=emoji;
@@ -610,8 +589,7 @@ async function endGame(){
 }
 
 function restartGame(){
-  score=0;cleared=0;secs=0;streak=0;wrongs=0;charsTyped=0;
-  activeCloud=null;clearedIds.clear();colorIdx=0;speedPct=100;
+  score=0;cleared=0;secs=0;streak=0;mistakesTotal=0;charsTyped=0;idx=0;lastValue='';
   clearInterval(timerInt);clearInterval(speedInt);
   ['score-display','timer-display'].forEach(id=>document.getElementById(id).textContent=0);
   document.getElementById('left-display').textContent=TOTAL;
@@ -620,10 +598,12 @@ function restartGame(){
   document.getElementById('speed-fill').style.width='100%';
   document.getElementById('streak-badge').style.display='none';
   document.getElementById('result-box').style.display='none';
-  document.getElementById('current-term').textContent='Waiting for a cloud…';
+  document.getElementById('sentence-display').textContent='Get ready…';
+  document.getElementById('hint-badge').style.display='none';
   document.getElementById('answer-input').value='';
   document.getElementById('answer-input').disabled=true;
-  document.getElementById('arena').innerHTML='';
+  document.getElementById('runner').style.left='0px';
+  document.getElementById('hurdles').innerHTML='';
   startCountdown();
 }
 </script>
