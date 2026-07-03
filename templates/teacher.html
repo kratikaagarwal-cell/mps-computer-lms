@@ -428,13 +428,13 @@ tbody tr:hover td{background:#f7fffe;}
             <label>Section</label>
             <select name="section"><option value="All Sections">All Sections</option>{% for sec in sections %}<option>{{ sec }}</option>{% endfor %}</select>
             <label style="margin-top:10px;">Game Type</label>
-            <select name="game_type" style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
+            <select name="game_type" id="gameTypeSelect" onchange="updatePairsUI()" style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;">
               <option value="matching">🃏 Matching Pairs</option>
-              <option value="word_cloud">☁️ Word Cloud Typing</option>
+              <option value="word_cloud">⌨️ Sentence Typing</option>
             </select>
           </div>
         </div>
-        <div style="margin:14px 0 8px;font-size:13px;font-weight:700;color:#0e9e82;">🃏 Word Pairs (Term → Definition)</div>
+        <div style="margin:14px 0 8px;font-size:13px;font-weight:700;color:#0e9e82;" id="pairsHeading">🃏 Word Pairs (Term → Definition)</div>
         <div id="pairs-container">
           <div class="pair-row">
             <input type="text" name="term" placeholder="Term (e.g. CPU)" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
@@ -442,7 +442,7 @@ tbody tr:hover td{background:#f7fffe;}
             <span></span>
           </div>
         </div>
-        <button type="button" onclick="addPair()" style="background:#e0fdf4;color:#065f46;border:2px dashed #10b981;border-radius:10px;padding:9px;width:100%;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;">+ Add Pair</button>
+        <button type="button" onclick="addPair()" id="addPairBtn" style="background:#e0fdf4;color:#065f46;border:2px dashed #10b981;border-radius:10px;padding:9px;width:100%;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;">+ Add Pair</button>
         <button type="submit" class="btn btn-orange">🎮 Save Game</button>
       </form>
     </div>
@@ -455,9 +455,9 @@ tbody tr:hover td{background:#f7fffe;}
           <td style="color:#aaa;font-size:11px;">{{ loop.index }}</td>
           <td><strong>{{ g.title }}</strong></td>
           <td style="font-size:11px;">{{ g.chapter }}</td>
-          <td><span class="badge" style="background:{% if g.game_type=='word_cloud' %}#e0f2fe;color:#0369a1{% else %}#ede9fe;color:#6d28d9{% endif %}">{% if g.game_type=='word_cloud' %}☁️ Cloud{% else %}🃏 Match{% endif %}</span></td>
+          <td><span class="badge" style="background:{% if g.game_type=='word_cloud' %}#e0f2fe;color:#0369a1{% else %}#ede9fe;color:#6d28d9{% endif %}">{% if g.game_type=='word_cloud' %}⌨️ Typing{% else %}🃏 Match{% endif %}</span></td>
           <td><span class="badge bg-orange">{{ g.section }}</span></td>
-          <td><span class="badge bg-teal">{{ g.pairs|length }} pairs</span></td>
+          <td><span class="badge bg-teal">{{ g.pairs|length }} {% if g.game_type=='word_cloud' %}sentences{% else %}pairs{% endif %}</span></td>
           <td><span class="badge bg-green">{{ g.scores|length }}</span></td>
           <td><a href="/game_leaderboard/{{ g.id }}" class="btn btn-orange btn-sm">🏆</a> <a href="/delete_game/{{ g.id }}" class="btn btn-red btn-sm" onclick="return confirm('Delete?')">🗑</a></td>
         </tr>{% endfor %}</tbody>
@@ -579,13 +579,43 @@ function addQuestion() {
   c.appendChild(d);
 }
 function addPair() {
+  const isTyping = document.getElementById('gameTypeSelect').value === 'word_cloud';
   const c = document.getElementById('pairs-container');
   const d = document.createElement('div');
   d.className = 'pair-row';
-  d.innerHTML = `<input type="text" name="term" placeholder="Term" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+  d.innerHTML = isTyping
+    ? `<input type="text" name="term" placeholder="Sentence to type (e.g. The cat sat on the mat.)" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+    <input type="text" name="definition" placeholder="Hint / category (optional)" style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
+    <button type="button" onclick="this.closest('.pair-row').remove()" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;">✕</button>`
+    : `<input type="text" name="term" placeholder="Term" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
     <input type="text" name="definition" placeholder="Definition" required style="padding:9px;border:1.5px solid #dde3ec;border-radius:8px;font-size:13px;font-family:inherit;margin:0;">
     <button type="button" onclick="this.closest('.pair-row').remove()" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;">✕</button>`;
   c.appendChild(d);
+}
+
+// Toggle the pairs form between "Matching Pairs" (term + definition)
+// and "Sentence Typing" (just the sentence, with an optional hint) —
+// only touches this creation form, the Matching Pair game logic itself is untouched.
+function updatePairsUI() {
+  const isTyping = document.getElementById('gameTypeSelect').value === 'word_cloud';
+  document.getElementById('pairsHeading').textContent = isTyping
+    ? '⌨️ Sentences to Type (students must type these exactly)'
+    : '🃏 Word Pairs (Term → Definition)';
+  document.getElementById('addPairBtn').textContent = isTyping ? '+ Add Sentence' : '+ Add Pair';
+  document.querySelectorAll('#pairs-container .pair-row').forEach(row => {
+    const termInput = row.querySelector('input[name="term"]');
+    const defInput = row.querySelector('input[name="definition"]');
+    if (!termInput || !defInput) return;
+    if (isTyping) {
+      termInput.placeholder = 'Sentence to type (e.g. The cat sat on the mat.)';
+      defInput.placeholder = 'Hint / category (optional)';
+      defInput.required = false;
+    } else {
+      termInput.placeholder = 'Term (e.g. CPU)';
+      defInput.placeholder = 'Definition (e.g. Processing Unit)';
+      defInput.required = true;
+    }
+  });
 }
 window.addEventListener('DOMContentLoaded', () => {
   ['chSelect','chSelectA','chSelectV','chSelectQ','chSelectG'].forEach(id => {
@@ -593,6 +623,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(el) el.dispatchEvent(new Event('change'));
   });
   toggleFileType(); // Initialize file type toggle
+  updatePairsUI(); // Initialize game pairs/sentences form
 });
 
 // FIX #1: Toggle quiz type between MCQ and external link
