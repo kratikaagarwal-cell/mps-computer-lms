@@ -1429,16 +1429,93 @@ def submit_feedback():
 # ── Read-only viewer ────────────────────────────────────────────────────────
 # Wraps a file in an embedded viewer (PDF toolbar hidden, right-click/save
 # shortcuts blocked) instead of letting students hit the raw file directly.
+# Inlined as a string (rather than templates/view_file.html) so this whole
+# feature lives in app.py alone — nothing extra to forget when deploying.
+OFFICE_EXTS = {"doc", "docx", "ppt", "pptx", "xls", "xlsx"}
+
+VIEW_FILE_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:#2b2b2b; font-family:'Segoe UI',Arial,sans-serif; }
+  .topbar {
+    height:48px; background:#1f2937; color:#fff; display:flex; align-items:center;
+    padding:0 16px; font-size:14px; font-weight:600; letter-spacing:.3px;
+    justify-content:space-between; user-select:none;
+  }
+  .topbar .lbl { display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .topbar .tag { background:#e74c3c; font-size:11px; padding:3px 8px; border-radius:10px; font-weight:700; }
+  .frame-wrap { position:relative; width:100%; height:calc(100% - 48px); }
+  iframe {
+    width:100%; height:100%; border:none; background:#525659;
+  }
+  /* transparent shield along the very top of the iframe to block the
+     native PDF viewer's own download/print icons in most browsers */
+  .shield-top {
+    position:absolute; top:0; left:0; right:0; height:40px; z-index:5;
+    background:transparent;
+  }
+</style>
+</head>
+<body oncontextmenu="return false;">
+  <div class="topbar">
+    <div class="lbl">📖 {{ title }}</div>
+    <div class="tag">READ ONLY</div>
+  </div>
+  <div class="frame-wrap">
+    <div class="shield-top" title="Viewing only"></div>
+    <iframe src="{{ file_url }}{% if viewer_mode == 'pdf' %}#toolbar=0&navpanes=0&scrollbar=1{% endif %}" title="{{ title }}"></iframe>
+  </div>
+
+  <script>
+    // Block common save/print/devtools shortcuts. This is a deterrent for
+    // casual users, not a hard security guarantee — a determined user can
+    // always find a way to copy content they can see on screen.
+    document.addEventListener('keydown', function (e) {
+      const k = e.key ? e.key.toLowerCase() : '';
+      const blockCombo =
+        ((e.ctrlKey || e.metaKey) && (k === 's' || k === 'p' || k === 'u')) ||
+        (e.ctrlKey && e.shiftKey && k === 'i') ||
+        k === 'f12';
+      if (blockCombo) { e.preventDefault(); e.stopPropagation(); return false; }
+    });
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  </script>
+</body>
+</html>
+"""
+
 @app.route("/view/<path:filename>")
 def view_file(filename):
     if "student_id" not in session and "teacher" not in session and "admin" not in session:
         return redirect("/student")
     title = request.args.get("title", filename)
+
     if filename.startswith("http://") or filename.startswith("https://"):
         file_url = to_embeddable_url(filename)
+        viewer_mode = "direct"
     else:
-        file_url = f"/uploads/{filename}"
-    return render_template("view_file.html", file_url=file_url, title=title)
+        # Absolute URL — Office Online / Google Docs viewers must be able
+        # to fetch the file themselves, a relative /uploads/... path won't work.
+        file_url = request.host_url.rstrip("/") + f"/uploads/{filename}"
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        if ext in OFFICE_EXTS:
+            # Browsers have no built-in renderer for Word/Excel/PowerPoint —
+            # loading them straight in an iframe just triggers a download.
+            # Route through Microsoft's Office Online viewer instead, which
+            # renders the document as a read-only preview.
+            from urllib.parse import quote
+            file_url = "https://view.officeapps.live.com/op/embed.aspx?src=" + quote(file_url, safe="")
+            viewer_mode = "direct"
+        else:
+            viewer_mode = "pdf"  # pdf, images, text — native iframe rendering works
+
+    return render_template_string(VIEW_FILE_HTML, file_url=file_url, title=title, viewer_mode=viewer_mode)
 
 # ── File serving ──────────────────────────────────────────────────────────────
 # All files (notes, books, assignments) are stored in Supabase storage.
