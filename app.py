@@ -1584,6 +1584,42 @@ def view_file(filename):
 # All files (notes, books, assignments) are stored in Supabase storage.
 # We redirect directly to the public CDN URL — no proxying through Flask.
 # Make sure lms-files bucket is set to PUBLIC in Supabase Storage settings.
+@app.route("/download/<path:filename>")
+def download_file(filename):
+    # Used only by the assignments section so students can save/print a copy.
+    # Notes and books intentionally do NOT use this route - they stay
+    # read-only via /view/<filename>.
+    if "student_id" not in session and "teacher" not in session and "admin" not in session:
+        return redirect("/student")
+
+    import re
+    # Assignment filenames are stored as "YYYYMMDD_HHMMSS_originalname.ext" -
+    # strip that prefix so the downloaded file has a clean, readable name.
+    display_name = re.sub(r'^\d{8}_\d{6}_', '', filename)
+
+    local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if os.path.exists(local_path):
+        return send_from_directory(
+            app.config["UPLOAD_FOLDER"], filename,
+            as_attachment=True, download_name=display_name
+        )
+
+    # Not on local disk -> fetch from Supabase storage and stream back
+    # with attachment headers (a plain redirect can't force a download).
+    import urllib.request
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/lms-files/{filename}"
+    try:
+        with urllib.request.urlopen(public_url) as resp:
+            data = resp.read()
+            mime = resp.headers.get_content_type()
+    except Exception:
+        return redirect("/student")
+
+    from flask import Response
+    response = Response(data, mimetype=mime or "application/octet-stream")
+    response.headers["Content-Disposition"] = f'attachment; filename="{display_name}"'
+    return response
+
 @app.route("/uploads/<filename>")
 def serve_upload(filename):
     local_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
