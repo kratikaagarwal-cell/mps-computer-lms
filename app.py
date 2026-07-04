@@ -26,11 +26,22 @@ if not DATABASE_URL:
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
-# ── Database connection pool tuned for 1000+ concurrent students ───────────────
+# ── Database connection pool tuned for Render + Supabase FREE TIER ─────────────
+# IMPORTANT: each gunicorn worker process gets its OWN pool. Total possible
+# connections = workers * (pool_size + max_overflow). With 2 workers this
+# gives a max of 2 * (5+5) = 20 connections - safely under Supabase's free
+# tier connection cap. Do NOT raise this without also raising your Supabase
+# plan / switching to the pooler connection string (see note below).
+#
+# Also: make sure DATABASE_URL uses Supabase's "Transaction" pooler
+# (port 6543), not the direct connection (port 5432) - Project Settings ->
+# Database -> Connection string -> Transaction pooler. The pooler is built
+# to handle many short-lived connections from apps like this one; the
+# direct connection has a much lower hard limit.
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,       # drop stale connections automatically
-    "pool_size": 20,             # keep 20 connections open at all times
-    "max_overflow": 40,          # allow up to 40 extra connections at peak
+    "pool_size": 5,              # keep 5 connections open per worker
+    "max_overflow": 5,           # allow up to 5 extra per worker at peak
     "pool_timeout": 30,          # wait max 30s for a free connection
     "pool_recycle": 1800,        # recycle connections every 30 min
 }
