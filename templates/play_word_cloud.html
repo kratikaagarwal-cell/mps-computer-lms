@@ -139,16 +139,36 @@ body{
 #flag{position:absolute;right:0;bottom:0;font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));animation:flagWave 1.4s ease-in-out infinite;}
 @keyframes flagWave{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
 #hurdles{position:absolute;left:0;right:40px;bottom:14px;height:32px;}
-.hurdle{position:absolute;bottom:0;font-size:18px;transform:translateX(-50%);transition:opacity .25s,transform .25s;}
+.hurdle{position:absolute;bottom:2px;width:16px;height:14px;transform:translateX(-50%);transition:opacity .25s,transform .25s;
+  background:radial-gradient(circle at 32% 28%, #8a8f97, #4c5157 60%, #2c2f33);
+  border-radius:45% 55% 50% 50% / 60% 55% 45% 40%;
+  box-shadow:0 2px 4px rgba(0,0,0,.5), inset 0 1px 2px rgba(255,255,255,.15);}
 .hurdle.gone{opacity:0;transform:translateX(-50%) scale(.3) translateY(6px);}
-#runner{position:absolute;left:0;bottom:6px;font-size:30px;transition:left .18s ease-out;
-  filter:drop-shadow(0 0 8px rgba(255,216,115,.55)) drop-shadow(0 3px 3px rgba(0,0,0,.4));}
+#runner{position:absolute;left:0;bottom:6px;width:30px;height:34px;transition:left .18s ease-out;}
 #runner.jump{animation:runnerJump .35s ease;}
-@keyframes runnerJump{0%{transform:translateY(0)}40%{transform:translateY(-19px) rotate(-8deg)}100%{transform:translateY(0)}}
+@keyframes runnerJump{0%{transform:translateY(0)}40%{transform:translateY(-19px) rotate(6deg)}100%{transform:translateY(0)}}
 #runner.trip{animation:runnerTrip .3s ease;}
-@keyframes runnerTrip{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(2px) rotate(10deg)}60%{transform:translateY(0) rotate(-6deg)}}
-#runner.blaze{animation:runnerBlaze .3s ease-in-out infinite;}
-@keyframes runnerBlaze{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}
+@keyframes runnerTrip{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(2px) rotate(-10deg)}60%{transform:translateY(0) rotate(6deg)}}
+#runner.blaze #runner-sprite{animation:runnerBlaze .28s ease-in-out infinite;}
+@keyframes runnerBlaze{0%,100%{transform:scaleX(-1) translateY(0) scale(1)}50%{transform:scaleX(-1) translateY(-6px) scale(1.08)}}
+#runner-sprite{
+  display:inline-block;font-size:28px;line-height:1;
+  transform:scaleX(-1);
+  filter:drop-shadow(0 0 8px rgba(255,216,115,.55)) drop-shadow(0 3px 3px rgba(0,0,0,.4));
+  animation:runCycle .42s ease-in-out infinite;
+}
+@keyframes runCycle{
+  0%{transform:scaleX(-1) translateY(0) rotate(0deg)}
+  25%{transform:scaleX(-1) translateY(-3px) rotate(-6deg)}
+  50%{transform:scaleX(-1) translateY(0) rotate(0deg)}
+  75%{transform:scaleX(-1) translateY(-3px) rotate(6deg)}
+  100%{transform:scaleX(-1) translateY(0) rotate(0deg)}
+}
+#runner.idle-still #runner-sprite{animation:none;transform:scaleX(-1);}
+.dust-bit{position:absolute;bottom:2px;width:6px;height:6px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.5),transparent 70%);
+  animation:dustFade .5s ease-out forwards;}
+@keyframes dustFade{0%{opacity:.6;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(4px) scale(1.8)}}
 
 /* ── SENTENCE PANEL (glassmorphism) ── */
 #sentence-panel{
@@ -379,7 +399,7 @@ body{
     <div id="track">
       <div class="track-line"></div>
       <div id="hurdles"></div>
-      <div id="runner">🏃</div>
+      <div id="runner"><span id="runner-sprite">🏃</span></div>
       <div id="flag">🏛️</div>
     </div>
   </div>
@@ -741,7 +761,6 @@ function buildHurdles(){
     const pct=(i/(n+1))*100;
     const h=document.createElement('div');
     h.className='hurdle';
-    h.textContent='🪨';
     h.style.left=pct+'%';
     h.dataset.pct=pct;
     wrap.appendChild(h);
@@ -757,6 +776,13 @@ function setRunnerProgress(correctLen){
     if(parseFloat(h.dataset.pct)<=pct) h.classList.add('gone');
     else h.classList.remove('gone');
   });
+}
+function spawnDust(){
+  const runner=document.getElementById('runner');
+  const bit=document.createElement('div');bit.className='dust-bit';
+  bit.style.left=(-2+Math.random()*4)+'px';
+  runner.appendChild(bit);
+  bit.addEventListener('animationend',()=>bit.remove());
 }
 function jumpRunner(){
   const r=document.getElementById('runner');
@@ -781,6 +807,7 @@ inp.addEventListener('input',()=>{
     if(value[i]===target[i]){
       if((i+1)%6===0) jumpRunner();
       sndKey();
+      spawnDust();
       if(streak>=3 && Math.random()<0.5) fireTrailBurst();
     } else {
       mistakesThisSentence++;mistakesTotal++;
