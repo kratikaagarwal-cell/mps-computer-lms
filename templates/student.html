@@ -349,7 +349,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
           <div class="am">{{ a.chapter }} · Sec: {{ a.section or 'All' }} · Due: <strong style="color:#e74c3c;">{{ a.due_date or 'No deadline' }}</strong></div>
           {% if a.description %}<div class="ad">📌 {{ a.description }}</div>{% endif %}
           <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-            {% if a.filename %}<a href="/view/{{ a.filename }}?title={{ a.title | urlencode }}" class="btn btn-blue btn-sm" target="_blank">📎 View</a>{% endif %}
+            {% if a.filename %}<a href="/view/{{ a.filename }}?title={{ a.title | urlencode }}" class="btn btn-blue btn-sm" target="_blank">📎 View</a>
+            <a href="/download/{{ a.filename }}" class="btn btn-purple btn-sm">⬇ Download</a>{% endif %}
             {% if is_submitted %}
               <span class="badge bg-green" style="padding:5px 10px;font-size:11px;">✓ Done</span>
             {% else %}
