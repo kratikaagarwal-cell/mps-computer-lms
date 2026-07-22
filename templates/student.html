@@ -429,6 +429,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
 {% endif %}
 
 <script>
+function markVideo(chapterNo) {
+  fetch('/mark_video/' + chapterNo, { method: 'POST', keepalive: true })
+    .then(() => location.reload())
+    .catch(() => location.reload());
+}
 function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
