@@ -200,7 +200,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
             <span class="ch-task {% if prog and prog.game_done %}done{% else %}pending{% endif %}">🎮 {% if prog and prog.game_done %}✓{% else %}○{% endif %} Game</span>
             {% endif %}
             {% if cfg and cfg.has_feedback %}
-            <span class="ch-task {% if ch.no in feedbacks_done %}done{% else %}pending{% endif %}">💬 {% if ch.no in feedbacks_done %}✓{% else %}○{% endif %} Feedback</span>
+            <span class="ch-task {% if ch.no in queries_done %}done{% else %}pending{% endif %}">💬 {% if ch.no in queries_done %}✓{% else %}○{% endif %} Feedback</span>
             {% endif %}
           </div>
         </div>
