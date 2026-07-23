@@ -1,5 +1,6 @@
 from flask import Flask, render_template, render_template_string, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import joinedload
 from flask_caching import Cache
 from datetime import datetime
 import openpyxl
@@ -1278,11 +1279,11 @@ def student_portal():
 
     notes       = mat("notes")
     books       = mat("book")
-    quizzes     = Quiz.query.filter(Quiz.student_class==cls,
+    quizzes     = Quiz.query.options(joinedload(Quiz.questions)).filter(Quiz.student_class==cls,
                     (Quiz.section==sec)|(Quiz.section=="All Sections")).order_by(Quiz.chapter_no).all()
     assignments = Assignment.query.filter(Assignment.student_class==cls,
                     (Assignment.section==sec)|(Assignment.section=="")|(Assignment.section=="All Sections")).order_by(Assignment.chapter_no).all()
-    games       = Game.query.filter(Game.student_class==cls,
+    games       = Game.query.options(joinedload(Game.pairs)).filter(Game.student_class==cls,
                     (Game.section==sec)|(Game.section=="All Sections")).order_by(Game.chapter_no).all()
     videos      = ChapterVideo.query.filter(ChapterVideo.student_class==cls,
                     (ChapterVideo.section==sec)|(ChapterVideo.section=="All Sections")).order_by(ChapterVideo.chapter_no).all()
